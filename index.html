@@ -91,6 +91,56 @@ details summary{cursor:pointer;color:var(--text-secondary);font-size:13px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .modal .sheet{background:var(--surface-1);border:1px solid var(--line);border-radius:18px 18px 0 0;max-width:860px;width:100%;max-height:88vh;overflow:auto;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
 @media (min-width:700px){.modal{align-items:center}.modal .sheet{border-radius:18px}}
+/* ---- matchup screen ---- */
+.mu-head{background:linear-gradient(180deg,#1e1e1c,#161615);border:1px solid var(--line);border-radius:18px;padding:16px 14px 12px;margin:12px 0}
+.mu-teams{display:grid;grid-template-columns:1fr 44px 1fr;gap:6px;align-items:start}
+.mu-side{min-width:0}
+.mu-side.r{text-align:right}
+.mu-top{display:flex;align-items:center;gap:8px}
+.mu-side.r .mu-top{flex-direction:row-reverse}
+.ava{width:46px;height:46px;border-radius:50%;object-fit:cover;background:var(--surface-2);border:2px solid var(--line);flex:none;display:grid;place-items:center;font-weight:700;color:var(--text-secondary);font-size:16px}
+.mu-wp{font-weight:800;font-size:15px}
+.mu-proj{color:var(--text-secondary);font-size:13px;font-variant-numeric:tabular-nums}
+.mu-wpbar{height:6px;border-radius:999px;background:var(--surface-2);margin:8px 0 10px;overflow:hidden}
+.mu-wpbar>span{display:block;height:100%;border-radius:999px}
+.mu-side.r .mu-wpbar>span{margin-left:auto}
+.mu-name{font-weight:800;font-size:17px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mu-meta{font-size:12.5px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mu-vs{display:grid;place-items:center;height:46px;color:var(--text-muted);font-weight:800;font-size:13px}
+.mu-score{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;margin-top:12px}
+.mu-ytp{font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.35}
+.streak-w{color:var(--good)} .streak-l{color:var(--bad)}
+.mu-weeknav{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 6px}
+.mu-weeknav h2{margin:0}
+.mu-weeknav .wk{display:flex;align-items:center;gap:6px;font-weight:700;color:var(--series-1)}
+.mu-weeknav button{background:none;border:0;color:var(--series-1);font-size:22px;padding:2px 8px;cursor:pointer}
+.mu-weeknav button:disabled{opacity:.25}
+.mu-row{display:grid;grid-template-columns:1fr 48px 1fr;gap:6px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.mu-p{display:flex;gap:6px;align-items:flex-start;min-width:0}
+.mu-p.r{flex-direction:row-reverse;text-align:right}
+.mu-info{flex:1;min-width:0}
+.mu-pn{font-weight:700;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mu-ps{font-size:12.5px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mu-cell{min-width:0}.mu-cell.r{text-align:right}
+.mu-pg{font-size:12px;color:var(--text-muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mu-pg.live{color:var(--good);font-weight:600}
+.mu-pts{flex:none;min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
+.mu-p.r .mu-pts{text-align:left}
+.mu-pts b{display:block;font-size:17px;line-height:1.2}
+.mu-pts span{font-size:12px;color:var(--text-muted)}
+.mu-pts.win b{color:var(--text-primary)} .mu-pts.lose b{color:var(--text-muted)}
+.mu-empty{color:var(--text-muted);font-size:13px}
+.pb{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#111;margin:0 auto}
+.pb.QB{background:#f07ca0}.pb.RB{background:#4fd1a5}.pb.WR{background:#6cb2f5}.pb.TE{background:#f5ad63}.pb.K{background:#b9a6e8}.pb.DEF{background:#a7a69f}
+.pb.DL,.pb.LB,.pb.DB,.pb.IDP_FLEX{background:#8fb3a8}
+.pb.FLEX{background:linear-gradient(135deg,#4fd1a5 0 33%,#6cb2f5 33% 66%,#f5ad63 66%)}
+.pb.WRRB_FLEX{background:linear-gradient(135deg,#4fd1a5 0 50%,#6cb2f5 50%)}
+.pb.REC_FLEX{background:linear-gradient(135deg,#6cb2f5 0 50%,#f5ad63 50%)}
+.pb.SUPER_FLEX{background:linear-gradient(135deg,#f07ca0 0 25%,#4fd1a5 25% 50%,#6cb2f5 50% 75%,#f5ad63 75%)}
+.pb.BN{background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--line)}
+.pb span{background:rgba(255,255,255,.82);border-radius:6px;padding:1px 4px}
+.pb.QB span,.pb.RB span,.pb.WR span,.pb.TE span,.pb.K span,.pb.DEF span,.pb.BN span{background:none;padding:0}
+.bench-toggle{width:100%;margin-top:12px}
 </style>
 </head>
 <body>
@@ -187,9 +237,10 @@ async function loadPlayers(){
 const P = id => S.players[id] || { n: (isNaN(id) ? id+' D/ST' : 'Player '+id), p: isNaN(id) ? 'DEF' : '?', fp:[isNaN(id)?'DEF':'?'], t: isNaN(id)?id:null };
 
 /* ---------------- projections (unofficial Sleeper feed, with fallbacks) ---------------- */
-async function loadProjections(season, week){
+const PROJ_CACHE = {};
+async function fetchProjections(season, week){
   const key = `${season}-${week}`;
-  if(S.projWeek === key) return;
+  if(PROJ_CACHE[key]) return PROJ_CACHE[key];
   const positions = ['QB','RB','WR','TE','K','DEF','DL','LB','DB'].map(p=>'position[]='+p).join('&');
   const urls = [
     `https://api.sleeper.app/projections/nfl/${season}/${week}?season_type=regular&${positions}`,
@@ -205,10 +256,17 @@ async function loadProjections(season, week){
       if(Object.keys(map).length) break;
     }catch(e){}
   }
-  S.proj = map; S.projWeek = key;
+  if(Object.keys(map).length) PROJ_CACHE[key] = map;
+  return map;
 }
-function projPts(pid, scoring){
-  const st = S.proj[pid];
+async function loadProjections(season, week){
+  const key = `${season}-${week}`;
+  if(S.projWeek === key) return;
+  S.proj = await fetchProjections(season, week); S.projWeek = key;
+}
+const projFor = fetchProjections;
+function projPts(pid, scoring, map){
+  const st = (map || S.proj)[pid];
   if(!st) return 0;
   const sc = scoring || S.league?.scoring_settings || {};
   const rec = sc.rec || 0;
@@ -375,37 +433,145 @@ function playerRow(pid, slot, pts, showProj=true){
     <div class="muted small">${esc(pl.p)} · ${esc(pl.t||'FA')}${showProj?` · proj ${fmt(projPts(pid))}`:''}</div></div>
     ${pts!=null?`<div class="mid" style="font-size:17px">${fmt(pts,2)}</div>`:''}</div>`;
 }
+/* ---- NFL schedule: kickoff times, opponents, byes (data/schedule.json, refreshed daily) ---- */
+let SCHED = null;
+async function loadSchedule(){
+  if(SCHED) return SCHED;
+  try{ const r = await fetch('data/schedule.json', {cache:'no-cache'}); SCHED = r.ok ? await r.json() : {}; }catch(e){ SCHED = {}; }
+  return SCHED;
+}
+const GAME_LEN = 3.5*3600e3;
+function gameInfo(pid, week){
+  const team = P(pid).t; const wk = SCHED?.weeks?.[week];
+  if(!wk || !team) return null;                                 // unknown
+  const g = wk[team]; if(!g) return { bye:true };
+  const kick = new Date(g.kick).getTime(), now = Date.now();
+  const started = now >= kick || g.state === 'in' || g.state === 'post';
+  const done = g.state === 'post' || now > kick + GAME_LEN;
+  const left = !started ? 1 : done ? 0 : Math.max(.05, 1 - (now - kick)/(3.25*3600e3));
+  return { ...g, kickMs:kick, started, done, live: started && !done, left };
+}
+function gameLine(pid, week){
+  const gi = gameInfo(pid, week); if(!gi) return '';
+  if(gi.bye) return 'BYE';
+  const vs = `${gi.home ? 'vs' : '@'} ${gi.opp}`;
+  if(gi.live) return `● Live ${vs}`;
+  if(gi.done) return `Final ${vs}`;
+  return `${new Date(gi.kickMs).toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'})} ${vs}`;
+}
+const shortName = pid => { const pl = P(pid); if(pl.p === 'DEF') return `${pl.t || pid} D/ST`; const parts = pl.n.split(' '); return parts.length > 1 ? `${parts[0][0]}. ${parts.slice(1).join(' ')}` : pl.n; };
+function avatarHTML(roster){
+  const u = userById(roster?.owner_id); const url = u?.metadata?.avatar || (u?.avatar ? `https://sleepercdn.com/avatars/thumbs/${u.avatar}` : null);
+  const init = esc((u?.display_name || '?').slice(0,1).toUpperCase());
+  return url ? `<img class="ava" src="${esc(url)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;ava&quot;>${init}</div>'">` : `<div class="ava">${init}</div>`;
+}
+function standing(roster){
+  const order = [...S.rosters].sort((a,b) => ((b.settings?.wins||0)-(a.settings?.wins||0)) || ((b.settings?.fpts||0)+(b.settings?.fpts_decimal||0)/100 - (a.settings?.fpts||0)-(a.settings?.fpts_decimal||0)/100));
+  return order.findIndex(r => r.roster_id === roster.roster_id) + 1;
+}
+function streakHTML(roster){
+  const st = roster?.metadata?.streak; if(!st) return '';
+  const w = /W$/i.test(st); return `<span class="${w?'streak-w':'streak-l'}">${w?'▲':'▼'}${esc(st)}</span>`;
+}
+/* live-aware simulation: finished games are locked in, games in progress use points so far + the remaining share of the projection */
+function liveEntries(starters, ptsMap, week, projMap, past){
+  return (starters||[]).filter(p => p && p !== '0').map(pid => {
+    const actual = ptsMap?.[pid] || 0; const proj = projPts(pid, null, projMap); const pos = P(pid).p;
+    const gi = past ? { done:true } : gameInfo(pid, week);
+    if(gi?.bye || gi?.done) return { pid, mu: actual, sd: 0, floor: -99, lock: true };
+    let left = gi ? gi.left : (actual !== 0 ? .5 : 1);
+    const mu = actual + proj*left; const sd = Math.max(1, proj*(CV[pos]||.5))*Math.sqrt(left);
+    return { pid, mu, sd, floor: actual + (pos==='DEF' ? -4 : 0), lock:false };
+  });
+}
+function simEntries(A, B, n = 6000){
+  let wins = 0;
+  for(let i = 0; i < n; i++){
+    let ta = 0, tb = 0;
+    for(const x of A) ta += x.lock ? x.mu : Math.max(x.floor, x.mu + x.sd*gauss());
+    for(const x of B) tb += x.lock ? x.mu : Math.max(x.floor, x.mu + x.sd*gauss());
+    wins += ta > tb ? 1 : ta === tb ? .5 : 0;
+  }
+  return wins / n;
+}
+function ytp(starters, week){
+  const left = (starters||[]).filter(p => p && p !== '0').filter(p => { const gi = gameInfo(p, week); return gi && !gi.bye && !gi.started; });
+  if(!SCHED?.weeks?.[week]) return '';
+  if(!left.length) return 'All games started';
+  const c = {}; left.forEach(p => { const pos = P(p).p; c[pos] = (c[pos]||0)+1; });
+  return `Yet to play (${left.length})<br>${['QB','RB','WR','TE','K','DEF'].filter(k=>c[k]).map(k => `${c[k]>1?c[k]+' ':''}${k}`).join(', ')}`;
+}
+S.mWeek = null;
 async function viewMatchup(){
-  const v = $('#view'); const week = currentWeek();
+  const v = $('#view'); const cur = currentWeek();
+  if(S.mWeek == null || S.mWeekLeague !== S.league.league_id){ S.mWeek = cur; S.mWeekLeague = S.league.league_id; }
+  const week = S.mWeek; const past = week < cur;
+  const lastWeek = Math.max(cur, (S.league.settings?.playoff_week_start || 15) + 2);
   v.innerHTML = `<div class="loader"><div class="spin"></div>Loading week ${week}…</div>`;
-  let ms;
-  try{ ms = await weekMatchups(week); }catch(e){ v.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
+  let ms, projMap;
+  try{ [ms, projMap] = await Promise.all([weekMatchups(week), projFor(S.league.season, week), loadSchedule()]); }
+  catch(e){ v.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
+  if(S.tab !== 'matchup' || S.mWeek !== week) return;
   const mine = ms.find(m => m.roster_id === S.myRoster.roster_id);
-  if(!mine || mine.matchup_id == null){ v.innerHTML = `<div class="card"><h2>Week ${week}</h2><p class="sec">No matchup for your team this week (bye week, or outside the playoffs).</p></div>`; return; }
+  const nav = `<div class="mu-weeknav"><h2>Starters</h2><div class="wk"><button id="wkPrev" ${week<=1?'disabled':''} aria-label="Previous week">‹</button>Week ${week}<button id="wkNext" ${week>=lastWeek?'disabled':''} aria-label="Next week">›</button></div></div>`;
+  const bindNav = () => { $('#wkPrev').onclick = () => { S.mWeek = week-1; viewMatchup(); }; $('#wkNext').onclick = () => { S.mWeek = week+1; viewMatchup(); }; };
+  if(!mine || mine.matchup_id == null){ v.innerHTML = nav + `<div class="card"><p class="sec" style="margin:0">No matchup for your team in week ${week} (bye week, or outside the playoff bracket).</p></div>`; bindNav(); return; }
   const opp = ms.find(m => m.matchup_id === mine.matchup_id && m.roster_id !== mine.roster_id);
-  const slots = starterSlots();
-  const proj = m => (m?.starters||[]).reduce((a,p) => a + (p && p!=='0' ? projPts(p) : 0), 0);
-  const sim = simulate(mine.starters, opp?.starters || [], 5000);
-  const oppRoster = rosterById(opp?.roster_id);
-  const side = (m, r, label) => `<div class="card" style="margin:0">
-      <div class="spread"><div><h3>${label}</h3><div class="pname">${esc(teamName(r))}</div><div class="muted small">${r?.settings?`${r.settings.wins}-${r.settings.losses}${r.settings.ties?'-'+r.settings.ties:''}`:''}</div></div>
-      <div style="text-align:right"><div class="mid">${fmt(m?.points ?? 0, 2)}</div><div class="muted small">proj ${fmt(proj(m))}</div></div></div>
-      <div class="list" style="margin-top:6px">${(m?.starters||[]).map((p,i) => playerRow(p, slots[i] || 'BN', m.players_points?.[p] ?? 0)).join('')}</div></div>`;
-  v.innerHTML = `
-    <div class="card">
-      <div class="spread"><h2>Week ${week} matchup</h2><span class="tag">${esc(S.league.name)}</span></div>
-      <div class="vs" style="margin:6px 0 10px">
-        <div><div class="muted small">You</div><div class="big">${fmt(mine.points ?? 0, 1)}</div></div>
-        <div class="muted">vs</div>
-        <div><div class="muted small">${esc(teamName(oppRoster))}</div><div class="big">${fmt(opp?.points ?? 0, 1)}</div></div>
-      </div>
-      <div class="bar" role="img" aria-label="Win probability ${Math.round(sim.win*100)} percent"><span style="width:${(sim.win*100).toFixed(1)}%"></span></div>
-      <div class="spread small" style="margin-top:6px"><span>You win <b>${Math.round(sim.win*100)}%</b></span><span>${Math.round((1-sim.win)*100)}% them</span></div>
-      <p class="muted small" style="margin:8px 0 0">Pre-game win chance from 5,000 projection-based simulations. Go to the Simulate tab for the full breakdown.</p>
-    </div>
-    <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
-      ${side(mine, S.myRoster, 'Your lineup')}${opp ? side(opp, oppRoster, 'Opponent') : ''}
+  const oppR = rosterById(opp?.roster_id);
+  const A = liveEntries(mine.starters, mine.players_points, week, projMap, past), B = liveEntries(opp?.starters, opp?.players_points, week, projMap, past);
+  const projTot = E => E.reduce((a,x) => a + x.mu, 0);
+  const anyStarted = [...A,...B].some(x => x.lock || (mine.players_points?.[x.pid] || opp?.players_points?.[x.pid]));
+  const wp = past ? ((mine.points||0) > (opp?.points||0) ? 1 : (mine.points||0) < (opp?.points||0) ? 0 : .5) : simEntries(A, B);
+  const wpTxt = past ? (wp === 1 ? 'WIN' : wp === 0 ? 'LOSS' : 'TIE') : `${Math.round(wp*100)}% WIN`;
+  const wpTxtO = past ? (wp === 0 ? 'WIN' : wp === 1 ? 'LOSS' : 'TIE') : `${Math.round((1-wp)*100)}% WIN`;
+  const colA = wp >= .5 ? 'var(--good)' : 'var(--bad)', colB = wp <= .5 ? 'var(--good)' : 'var(--bad)';
+  const rec = r => r?.settings ? `${r.settings.wins}-${r.settings.losses}${r.settings.ties?'-'+r.settings.ties:''}` : '';
+  const head = (m, r, E, side, wpT, col, pct) => `<div class="mu-side ${side}">
+      <div class="mu-top">${avatarHTML(r)}<div><div class="mu-wp" style="color:${col}">${wpT}</div><div class="mu-proj">${past ? 'Final' : 'proj ' + fmt(projTot(E), 2)}</div></div></div>
+      <div class="mu-wpbar"><span style="width:${(pct*100).toFixed(1)}%;background:${col}"></span></div>
+      <div class="mu-name">${esc(teamName(r))}</div>
+      <div class="mu-meta">${side==='r' ? `${rec(r)} ${streakHTML(r)} (#${standing(r)})` : `${rec(r)} ${streakHTML(r)} (#${standing(r)})`}</div>
+      <div class="mu-meta">@${esc(ownerName(r))}</div>
+      <div class="mu-score">${fmt(m?.points ?? 0, 2)}</div>
+      ${past ? '' : `<div class="mu-ytp">${ytp(m?.starters, week)}</div>`}
     </div>`;
+  const cell = (pid, ptsMap, side, other) => {
+    if(!pid || pid === '0') return `<div class="mu-cell ${side}"><div class="mu-p ${side}"><div class="mu-info mu-empty">Empty</div></div></div>`;
+    const pl = P(pid); const gi = gameInfo(pid, week);
+    const actual = ptsMap?.[pid]; const pr = projPts(pid, null, projMap);
+    const showPts = past || gi?.started || gi?.bye || (!gi && actual);
+    const cls = other != null && showPts ? (actual > other ? 'win' : actual < other ? 'lose' : '') : '';
+    return `<div class="mu-cell ${side}"><div class="mu-p ${side}">
+      <div class="mu-info"><div class="mu-pn">${esc(shortName(pid))}${pl.i?`<span class="inj">${esc(pl.i==='Questionable'?'Q':pl.i==='Doubtful'?'D':pl.i==='Out'?'O':pl.i)}</span>`:''}</div>
+        <div class="mu-ps">${esc(pl.p)} · ${esc(pl.t||'FA')}</div></div>
+      <div class="mu-pts ${cls}"><b>${showPts ? fmt(actual||0, 2) : '–'}</b><span>${gi?.bye ? 'BYE' : fmt(pr, 2)}</span></div></div>
+      <div class="mu-pg ${gi?.live?'live':''}">${gameLine(pid, week)}</div></div>`;
+  };
+  const slots = starterSlots();
+  const rows = slots.map((slot, i) => {
+    const a = mine.starters?.[i], b = opp?.starters?.[i];
+    const pa = a && a !== '0' ? (mine.players_points?.[a] || 0) : null, pb = b && b !== '0' ? (opp?.players_points?.[b] || 0) : null;
+    return `<div class="mu-row">${cell(a, mine.players_points, '', pb)}<div class="pb ${slot}"><span>${esc(SLOT_LABEL[slot] || slot)}</span></div>${cell(b, opp?.players_points, 'r', pa)}</div>`;
+  }).join('');
+  const benchOf = m => (m?.players || []).filter(p => !(m.starters||[]).includes(p)).sort((x,y) => projPts(y,null,projMap) - projPts(x,null,projMap));
+  const ba = benchOf(mine), bb = benchOf(opp);
+  const benchRows = Array.from({length: Math.max(ba.length, bb.length)}, (_, i) =>
+    `<div class="mu-row">${cell(ba[i], mine.players_points, '', null)}<div class="pb BN"><span>BN</span></div>${cell(bb[i], opp?.players_points, 'r', null)}</div>`).join('');
+  v.innerHTML = `
+    <div class="mu-head"><div class="mu-teams">
+      ${head(mine, S.myRoster, A, '', wpTxt, colA, wp)}
+      <div class="mu-vs">VS</div>
+      ${head(opp, oppR, B, 'r', wpTxtO, colB, 1-wp)}
+    </div>
+    ${!past ? `<p class="muted small" style="margin:10px 0 0;text-align:center">${anyStarted ? 'Live win chance: finished games are locked in and games in progress count the points so far.' : 'Win chance from 6,000 simulations of Sleeper projections.'} <a href="#" id="toSim">Full simulation ›</a></p>` : ''}
+    </div>
+    ${nav}
+    <div>${rows}</div>
+    <button class="btn ghost bench-toggle" id="benchBtn">Show bench</button>
+    <div id="bench" class="hidden">${benchRows || '<p class="muted">No bench players.</p>'}</div>`;
+  bindNav();
+  $('#benchBtn').onclick = () => { const h = $('#bench').classList.toggle('hidden'); $('#benchBtn').textContent = h ? 'Show bench' : 'Hide bench'; };
+  const ts = $('#toSim'); if(ts) ts.onclick = e => { e.preventDefault(); S.tab = 'sim'; buildTabs(); render(); };
 }
 
 /* =========================================================

@@ -86,4 +86,30 @@ if (state) {
   } else failures++;
 } else failures++;
 
+/* ---------- NFL schedule (kickoff times, opponents, byes) from ESPN's public scoreboard ---------- */
+if (state) {
+  const season = state.season;
+  const fromWeek = state.season_type === 'regular' ? Math.max(1, Number(state.display_week || state.week || 1)) : 1;
+  const FIX = { WSH: 'WAS', JAC: 'JAX', LA: 'LAR' };            // ESPN -> Sleeper team codes
+  const weeks = {};
+  for (let w = Math.max(1, fromWeek - 1); w <= 18; w++) {
+    const d = await get(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=2&week=${w}&dates=${season}`);
+    if (!d || !Array.isArray(d.events)) continue;
+    const wk = {};
+    for (const ev of d.events) {
+      const c = ev.competitions?.[0]; if (!c) continue;
+      const teams = (c.competitors || []).map(t => ({ ab: FIX[t.team?.abbreviation] || t.team?.abbreviation, home: t.homeAway === 'home' }));
+      if (teams.length !== 2) continue;
+      const st = c.status?.type?.state || ev.status?.type?.state || 'pre';
+      for (const [me, op] of [[teams[0], teams[1]], [teams[1], teams[0]]]) wk[me.ab] = { opp: op.ab, home: me.home, kick: c.date || ev.date, state: st };
+    }
+    if (Object.keys(wk).length) weeks[w] = wk;
+    await sleep(300);
+  }
+  if (Object.keys(weeks).length) {
+    await writeFile('data/schedule.json', JSON.stringify({ asOf: new Date().toISOString(), season, weeks }));
+    console.log(`schedule: weeks ${Object.keys(weeks).join(',')}`);
+  } else failures++;
+}
+
 console.log(failures ? `finished with ${failures} source(s) unavailable; kept previous files for those` : 'all sources updated');
