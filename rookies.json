@@ -1,0 +1,419 @@
+{
+ "asOf": "2026-11-19",
+ "draftClass": 2027,
+ "updates": [
+  {
+   "date": "2026-11-19",
+   "text": "Initial board: 37 prospects across QB, RB, WR and TE, with starting draft-range and production estimates."
+  }
+ ],
+ "prospects": [
+  {
+   "id": "jsmith",
+   "name": "Jeremiah Smith",
+   "pos": "WR",
+   "school": "Ohio State",
+   "ht": "6-3",
+   "wt": 223,
+   "pick": 2,
+   "prod": 97,
+   "note": "Unanimous All-American in 2025; holds Buckeye career receiving records. Near-unanimous WR1."
+  },
+  {
+   "id": "ccoleman",
+   "name": "Cam Coleman",
+   "pos": "WR",
+   "school": "Texas",
+   "ht": "6-3",
+   "wt": 204,
+   "pick": 12,
+   "prod": 78,
+   "note": "Former five-star; transferred from Auburn. Widely viewed as WR2 in the class."
+  },
+  {
+   "id": "cbecker",
+   "name": "Charlie Becker",
+   "pos": "WR",
+   "school": "Indiana",
+   "ht": "6-4",
+   "wt": 207,
+   "pick": 16,
+   "prod": 84,
+   "note": "Led the Big Ten at 20.0 yards per catch in 2025."
+  },
+  {
+   "id": "kjduff",
+   "name": "KJ Duff",
+   "pos": "WR",
+   "school": "Rutgers",
+   "ht": "6-6",
+   "wt": 225,
+   "pick": 30,
+   "prod": 80,
+   "note": "2025: 60 catches, 1,084 yards, 7 TD."
+  },
+  {
+   "id": "rcw",
+   "name": "Ryan Coleman-Williams",
+   "pos": "WR",
+   "school": "Alabama",
+   "ht": "6-0",
+   "wt": 184,
+   "pick": 42,
+   "prod": 72,
+   "note": "Formerly Ryan Williams. Explosive freshman year; young for the class."
+  },
+  {
+   "id": "mcraver",
+   "name": "Mario Craver",
+   "pos": "WR",
+   "school": "Texas A&M",
+   "ht": "5-9",
+   "wt": 165,
+   "pick": 52,
+   "prod": 79,
+   "note": "Smaller, dynamic slot/vertical threat."
+  },
+  {
+   "id": "esingleton",
+   "name": "Eric Singleton Jr.",
+   "pos": "WR",
+   "school": "Florida",
+   "ht": "5-10",
+   "wt": 180,
+   "pick": 60,
+   "prod": 70,
+   "note": "Early-round possibility despite inconsistent QB play."
+  },
+  {
+   "id": "nmarsh",
+   "name": "Nick Marsh",
+   "pos": "WR",
+   "school": "Indiana",
+   "ht": "6-3",
+   "wt": 203,
+   "pick": 55,
+   "prod": 66,
+   "note": "2025: 59 catches, 662 yards. Strong at contested catches."
+  },
+  {
+   "id": "rwingo",
+   "name": "Ryan Wingo",
+   "pos": "WR",
+   "school": "Texas",
+   "ht": "6-2",
+   "wt": 214,
+   "pick": 58,
+   "prod": 66,
+   "note": "Former five-star; drops were an issue in 2025."
+  },
+  {
+   "id": "rharris",
+   "name": "Reed Harris",
+   "pos": "WR",
+   "school": "Arizona State",
+   "ht": "6-5",
+   "wt": 217,
+   "pick": 62,
+   "prod": 76,
+   "note": "800 yards, 8 TD through his first seven games of 2026."
+  },
+  {
+   "id": "wyoung",
+   "name": "Wyatt Young",
+   "pos": "WR",
+   "school": "Oklahoma State",
+   "ht": "6-0",
+   "wt": 195,
+   "pick": 85,
+   "prod": 84,
+   "note": "2025 (North Texas): 1,264 yards, 10 TD."
+  },
+  {
+   "id": "dalexander",
+   "name": "Deuce Alexander",
+   "pos": "WR",
+   "school": "Ole Miss",
+   "ht": "6-0",
+   "wt": 180,
+   "pick": 80,
+   "prod": 68,
+   "note": "Big-play threat; transferred from Wake Forest."
+  },
+  {
+   "id": "jsherrill",
+   "name": "Junior Sherrill",
+   "pos": "WR",
+   "school": "",
+   "ht": "",
+   "wt": null,
+   "pick": 100,
+   "prod": 64,
+   "note": "Mid-round prospect with early-round upside."
+  },
+  {
+   "id": "klacy",
+   "name": "Kewan Lacy",
+   "pos": "RB",
+   "school": "Ole Miss",
+   "ht": "",
+   "wt": null,
+   "pick": 32,
+   "prod": 86,
+   "note": "Several draft analysts rank him RB1. Speed back."
+  },
+  {
+   "id": "ahardy",
+   "name": "Ahmad Hardy",
+   "pos": "RB",
+   "school": "Missouri",
+   "ht": "5-10",
+   "wt": 206,
+   "pick": 40,
+   "prod": 90,
+   "note": "Led the SEC in rushing in 2025 and the nation in 15+ yard runs."
+  },
+  {
+   "id": "jbaugh",
+   "name": "Jadan Baugh",
+   "pos": "RB",
+   "school": "Florida",
+   "ht": "6-0",
+   "wt": 228,
+   "pick": 45,
+   "prod": 80,
+   "note": "1,170 rushing yards in 2025. Big, balanced runner."
+  },
+  {
+   "id": "nfrazier",
+   "name": "Nate Frazier",
+   "pos": "RB",
+   "school": "Georgia",
+   "ht": "",
+   "wt": null,
+   "pick": 72,
+   "prod": 70,
+   "note": "Power plus open-field speed."
+  },
+  {
+   "id": "rbrown",
+   "name": "Raleek Brown",
+   "pos": "RB",
+   "school": "Texas",
+   "ht": "",
+   "wt": null,
+   "pick": 95,
+   "prod": 78,
+   "note": "1,141 rushing yards at Arizona State in 2025."
+  },
+  {
+   "id": "cdickey",
+   "name": "Cameron Dickey",
+   "pos": "RB",
+   "school": "Texas Tech",
+   "ht": "",
+   "wt": null,
+   "pick": 90,
+   "prod": 74,
+   "note": ""
+  },
+  {
+   "id": "hsmothers",
+   "name": "Hollywood Smothers",
+   "pos": "RB",
+   "school": "NC State",
+   "ht": "",
+   "wt": null,
+   "pick": 105,
+   "prod": 70,
+   "note": ""
+  },
+  {
+   "id": "mfletcher",
+   "name": "Mark Fletcher Jr.",
+   "pos": "RB",
+   "school": "Miami",
+   "ht": "",
+   "wt": null,
+   "pick": 100,
+   "prod": 72,
+   "note": ""
+  },
+  {
+   "id": "dmestemaker",
+   "name": "Drew Mestemaker",
+   "pos": "QB",
+   "school": "Oklahoma State",
+   "ht": "6-3",
+   "wt": 215,
+   "pick": 6,
+   "prod": 88,
+   "note": "Rose from borderline first-rounder to QB1 on some big boards this fall."
+  },
+  {
+   "id": "cjcarr",
+   "name": "CJ Carr",
+   "pos": "QB",
+   "school": "Notre Dame",
+   "ht": "6-2",
+   "wt": 200,
+   "pick": 14,
+   "prod": 80,
+   "note": ""
+  },
+  {
+   "id": "amanning",
+   "name": "Arch Manning",
+   "pos": "QB",
+   "school": "Texas",
+   "ht": "6-4",
+   "wt": 222,
+   "pick": 16,
+   "prod": 74,
+   "note": "Ideal build and athleticism; 2026 season has been uneven."
+  },
+  {
+   "id": "dmoore",
+   "name": "Dante Moore",
+   "pos": "QB",
+   "school": "Oregon",
+   "ht": "6-3",
+   "wt": 206,
+   "pick": 20,
+   "prod": 82,
+   "note": "Returned to Oregon rather than enter the 2026 draft."
+  },
+  {
+   "id": "tchambliss",
+   "name": "Trinidad Chambliss",
+   "pos": "QB",
+   "school": "Ole Miss",
+   "ht": "6-0",
+   "wt": 208,
+   "pick": 26,
+   "prod": 84,
+   "note": ""
+  },
+  {
+   "id": "dmensah",
+   "name": "Darian Mensah",
+   "pos": "QB",
+   "school": "Miami",
+   "ht": "6-3",
+   "wt": 205,
+   "pick": 28,
+   "prod": 84,
+   "note": ""
+  },
+  {
+   "id": "asimmons",
+   "name": "Austin Simmons",
+   "pos": "QB",
+   "school": "Missouri",
+   "ht": "6-4",
+   "wt": 220,
+   "pick": 45,
+   "prod": 72,
+   "note": ""
+  },
+  {
+   "id": "jsayin",
+   "name": "Julian Sayin",
+   "pos": "QB",
+   "school": "Ohio State",
+   "ht": "6-1",
+   "wt": 208,
+   "pick": 50,
+   "prod": 80,
+   "note": "Very efficient starter throwing to Jeremiah Smith."
+  },
+  {
+   "id": "jmaiava",
+   "name": "Jayden Maiava",
+   "pos": "QB",
+   "school": "USC",
+   "ht": "6-4",
+   "wt": 230,
+   "pick": 60,
+   "prod": 72,
+   "note": ""
+  },
+  {
+   "id": "lsellers",
+   "name": "LaNorris Sellers",
+   "pos": "QB",
+   "school": "South Carolina",
+   "ht": "6-3",
+   "wt": 240,
+   "pick": 70,
+   "prod": 68,
+   "note": "Rushing upside helps in fantasy."
+  },
+  {
+   "id": "tgreen",
+   "name": "Trey'Dez Green",
+   "pos": "TE",
+   "school": "LSU",
+   "ht": "",
+   "wt": null,
+   "pick": 45,
+   "prod": 70,
+   "note": "Big target; some evaluators expect him to be TE1."
+  },
+  {
+   "id": "jjohnson",
+   "name": "Jamari Johnson",
+   "pos": "TE",
+   "school": "Oregon",
+   "ht": "6-5",
+   "wt": 257,
+   "pick": 50,
+   "prod": 74,
+   "note": "Most NFL-ready TE per many evaluators; tough after the catch."
+  },
+  {
+   "id": "lreynolds",
+   "name": "Luke Reynolds",
+   "pos": "TE",
+   "school": "",
+   "ht": "",
+   "wt": null,
+   "pick": 105,
+   "prod": 60,
+   "note": ""
+  },
+  {
+   "id": "goakley",
+   "name": "Garrett Oakley",
+   "pos": "TE",
+   "school": "",
+   "ht": "",
+   "wt": null,
+   "pick": 110,
+   "prod": 64,
+   "note": "Size, athleticism and blocking."
+  },
+  {
+   "id": "hhansen",
+   "name": "Hayden Hansen",
+   "pos": "TE",
+   "school": "Florida",
+   "ht": "6-8",
+   "wt": 267,
+   "pick": 115,
+   "prod": 58,
+   "note": "Big in-line tight end."
+  },
+  {
+   "id": "bbrahmer",
+   "name": "Benjamin Brahmer",
+   "pos": "TE",
+   "school": "Penn State",
+   "ht": "",
+   "wt": null,
+   "pick": 120,
+   "prod": 62,
+   "note": ""
+  }
+ ]
+}
