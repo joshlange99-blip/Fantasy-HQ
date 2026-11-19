@@ -327,8 +327,11 @@ async function loadConfig(){ try{ const r = await fetch('config.json', {cache:'n
 function moneyCfg(){
   const local = store.get('money:'+familyKey(), null);
   if(local) return local;
-  const m = CONFIG.money || {}; const nmL = (S.league?.name||'').toLowerCase().trim();
-  const hit = Object.entries(m).find(([k]) => k === familyKey() || k === S.league?.league_id || k.toLowerCase().trim() === nmL);
+  // match by league id or by name, ignoring case, apostrophe style and punctuation
+  const norm = x => String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const m = CONFIG.money || {}; const nmL = norm(S.league?.name);
+  const hit = Object.entries(m).find(([k]) => k === familyKey() || k === S.league?.league_id || norm(k) === nmL)
+           || Object.entries(m).find(([k]) => norm(k).length > 4 && (nmL.includes(norm(k)) || norm(k).includes(nmL)));
   if(!hit) return null;
   const c = hit[1];
   return { enabled: (c.buyIn||0) > 0, buyIn: c.buyIn||0, payouts: c.payouts || [60,30,10], pfBonus: c.pfBonus||0, overrides: c.overrides||{}, fromConfig:true };

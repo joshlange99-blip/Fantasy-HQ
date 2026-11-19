@@ -1,4 +1,7 @@
 {
-  "sleeperUser": "",
-  "money": {}
+  "sleeperUser": "joshlange",
+  "money": {
+    "Jerry Sandusky's Dynasty": { "buyIn": 100, "payouts": [60, 30, 10], "pfBonus": 0, "overrides": {} },
+    "Old Balls League": { "buyIn": 40, "payouts": [60, 30, 10], "pfBonus": 0, "overrides": {} }
+  }
 }
