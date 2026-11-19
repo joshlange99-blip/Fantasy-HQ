@@ -233,12 +233,12 @@ const canPlay = (pid, slot) => { const pl = P(pid); return (SLOT_ELIG[slot]||[])
 const isSuperflex = () => { const rp = S.league?.roster_positions || []; return rp.includes('SUPER_FLEX') || rp.filter(x=>x==='QB').length > 1; };
 const isDynasty = () => S.league?.settings?.type === 2;
 
-function optimalLineup(playerIds){
+function optimalLineup(playerIds, fn = projPts){
   const slots = starterSlots();
   // fill most-restrictive slots first
   const order = slots.map((s,i)=>({s,i})).sort((a,b)=>(SLOT_ELIG[a.s].length - SLOT_ELIG[b.s].length));
   const used = new Set(); const res = new Array(slots.length).fill(null);
-  const avail = playerIds.filter(Boolean).map(pid => ({pid, pts: projPts(pid)})).sort((a,b)=>b.pts-a.pts);
+  const avail = playerIds.filter(Boolean).map(pid => ({pid, pts: fn(pid)})).sort((a,b)=>b.pts-a.pts);
   for(const {s,i} of order){
     const pick = avail.find(x => !used.has(x.pid) && canPlay(x.pid, s));
     if(pick){ used.add(pick.pid); res[i] = pick.pid; }
@@ -309,7 +309,7 @@ async function openLeague(id){
     ]);
     S.league = league; S.users = users || []; S.rosters = rosters || [];
     S.myRoster = S.rosters.find(r => r.owner_id === S.user.user_id || (r.co_owners||[]).includes(S.user.user_id));
-    S.history = null;
+    S.history = null; tradedPicks = null; replCache = null;
     await Promise.all([
       loadPlayers(),
       loadProjections(league.season, week),
@@ -340,7 +340,7 @@ function familyKey(){ return S.history?.rootId || store.get('root:'+S.league.lea
 
 function buildTabs(){
   const cfg = moneyCfg();
-  const tabs = [['matchup','Matchup'],['lineup','Lineup'],['sim','Simulate'],['waivers','Waivers'],['history','League history']];
+  const tabs = [['matchup','Matchup'],['lineup','Lineup'],['sim','Simulate'],['waivers','Waivers'],['trade','Trade'],['history','League history']];
   if(cfg && cfg.enabled) tabs.push(['money','Money']);
   if(isDynasty()) tabs.push(['rookies','Rookie board']);
   if(!tabs.find(t => t[0] === S.tab)) S.tab = 'matchup';
@@ -351,11 +351,11 @@ function destroyCharts(){ S.charts.forEach(c => { try{ c.destroy(); }catch(e){} 
 function render(){
   destroyCharts();
   const v = $('#view');
-  if(!S.myRoster && ['matchup','lineup','sim'].includes(S.tab)){
+  if(!S.myRoster && ['matchup','lineup','sim','trade'].includes(S.tab)){
     v.innerHTML = `<div class="note">You don't own a team in this league, so matchup and lineup tools are off. History and waivers still work.</div>`;
     return;
   }
-  ({matchup:viewMatchup, lineup:viewLineup, sim:viewSim, waivers:viewWaivers, history:viewHistory, money:viewMoney, rookies:viewRookies})[S.tab]();
+  ({matchup:viewMatchup, lineup:viewLineup, sim:viewSim, waivers:viewWaivers, trade:viewTrade, history:viewHistory, money:viewMoney, rookies:viewRookies})[S.tab]();
 }
 
 /* =========================================================
@@ -796,6 +796,227 @@ async function viewMoney(){
       options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: it => 'Running total ' + money(it.parsed.y) } } },
         scales:{ x:{ ticks:{color:'#8d8c84'}, grid:{display:false} }, y:{ ticks:{ color:'#8d8c84', callback:v=>money(v) }, grid:{ color: c => c.tick.value===0 ? '#8d8c84' : '#2f2f2c' } } } } }));
   }
+}
+
+
+/* =========================================================
+   TRADE EVALUATOR
+   Dynasty: market values from RosterAudit.com (refreshed daily into data/ by a GitHub Action),
+            with a built-in age/rank model as a fallback.
+   Redraft: rest-of-season projected points above replacement (Sleeper projections).
+   Both:    each team's starting lineup before vs. after the trade.
+   ========================================================= */
+const TV = { dyn:null, picks:null, red:null, loaded:false, live:false };
+const RA_API = 'https://rosteraudit.com/wp-json/ra/v1';
+async function loadTradeData(){
+  if(TV.loaded) return;
+  const g = async (u, opt) => { try{ const r = await fetch(u, opt || {cache:'no-cache'}); return r.ok ? await r.json() : null; }catch(e){ return null; } };
+  [TV.dyn, TV.picks, TV.red] = await Promise.all([g('data/dynasty-values.json'), g('data/picks.json'), g('data/redraft.json')]);
+  if(!TV.dyn){ // no daily file yet: try Roster Audit directly (works only if it allows browser calls)
+    const d = await g(`${RA_API}/rankings/values?format_key=sf_ppr`, {});
+    if(d){ const sf = {}, one = {}; for(const [id,v] of Object.entries(d.values||d)){ if(/^\d+$/.test(id) && v){ sf[id]=v.sf; one[id]=v['1qb']; } }
+      TV.dyn = { asOf: new Date().toISOString().slice(0,10), attribution: d.attribution||'Values by RosterAudit.com', attribution_url: d.attribution_url||'https://rosteraudit.com', formats:{ sf_ppr:sf, '1qb_ppr':one } }; TV.live = true; }
+  }
+  if(!TV.picks){ const d = await g(`${RA_API}/picks`, {}); if(d && Array.isArray(d.picks)) TV.picks = { picks: d.picks.map(p=>({season:p.pick_season, round:p.pick_round, slot:p.pick_slot, sf:p.val_sf, '1qb':p.val_1qb})) }; }
+  TV.loaded = true;
+}
+function dynFormat(){
+  const sc = S.league.scoring_settings || {}; const sf = isSuperflex(); const rec = sc.rec || 0;
+  const scoring = (sc.bonus_rec_te||0) > 0 && rec >= 0.75 ? 'ppr_tep' : rec >= 0.75 ? 'ppr' : 'half';
+  return { key:(sf?'sf_':'1qb_')+scoring, sf, scoring };
+}
+function dynTable(){ const f = dynFormat(); const F = TV.dyn?.formats || {}; return F[f.key] || F[(f.sf?'sf_':'1qb_')+'ppr'] || null; }
+function fallbackDyn(pid){
+  const p = P(pid); const rank = p.r ?? 9999; if(rank >= 9999 || !p.t) return 0;
+  let v = 9000*Math.exp(-(rank-1)/110);
+  const age = p.a || 26, peak = {QB:30,RB:24.5,WR:26,TE:27}[p.p] || 27, decay = {QB:.04,RB:.14,WR:.08,TE:.07}[p.p] || .08;
+  v *= age <= peak ? 1 + Math.min(.25, (peak-age)*.06) : Math.max(.15, 1 - (age-peak)*decay);
+  if(p.p === 'QB') v *= isSuperflex() ? 1.35 : .7;
+  if(p.p === 'K' || p.p === 'DEF') v *= .05;
+  return Math.round(v);
+}
+const dynValue = pid => { const t = dynTable(); return t ? (t[pid] || 0) : fallbackDyn(pid); };
+function rosPts(pid){
+  const t = TV.red?.players?.[pid]; if(!t) return null;
+  const rec = S.league.scoring_settings?.rec || 0; return rec >= .75 ? t[0] : rec >= .25 ? t[1] : t[2];
+}
+const rosWeeks = () => TV.red?.weeks || Math.max(1, 18 - currentWeek() + 1);
+const rosTotal = pid => { const r = rosPts(pid); return r != null ? r : projPts(pid) * rosWeeks(); };
+const rosPerWeek = pid => rosTotal(pid) / rosWeeks();
+let replCache = null;
+function replacement(){
+  if(replCache && replCache.lg === S.league.league_id) return replCache.v;
+  const teams = S.league.total_rosters || S.rosters.length || 12;
+  const need = {QB:0,RB:0,WR:0,TE:0,K:0,DEF:0};
+  starterSlots().forEach(s => {
+    if(need[s] != null) need[s] += 1;
+    else if(s==='FLEX'){ need.RB+=.45; need.WR+=.45; need.TE+=.1; }
+    else if(s==='WRRB_FLEX'){ need.RB+=.5; need.WR+=.5; }
+    else if(s==='REC_FLEX'){ need.WR+=.8; need.TE+=.2; }
+    else if(s==='SUPER_FLEX'){ need.QB+=.85; need.RB+=.05; need.WR+=.07; need.TE+=.03; }
+  });
+  const v = {};
+  for(const pos in need){ if(!need[pos]) continue;
+    const pts = Object.keys(S.players).filter(id => S.players[id].p === pos && S.players[id].t).map(rosTotal).sort((a,b)=>b-a);
+    v[pos] = pts[Math.min(pts.length-1, Math.round(need[pos]*teams))] ?? 0; }
+  replCache = { lg:S.league.league_id, v }; return v;
+}
+const redValue = pid => { const r = replacement()[P(pid).p]; if(r == null) return 0; const x = rosTotal(pid); return Math.max(0, x - r) + .03*x; };
+
+/* picks: who owns what, and what each is worth */
+let tradedPicks = null;
+const nextDraftSeason = () => myPicks().base;
+function ownedPicks(rid){
+  const { rounds, base } = myPicks(); const out = [];
+  for(let y = base; y < base+3; y++) for(let rd = 1; rd <= rounds; rd++) S.rosters.forEach(r => {
+    const t = (tradedPicks||[]).find(p => String(p.season)===String(y) && p.round===rd && p.roster_id===r.roster_id);
+    if((t ? t.owner_id : r.roster_id) === rid) out.push({ type:'k', season:y, round:rd, orig:r.roster_id });
+  });
+  return out;
+}
+function pickSlot(orig, season){
+  if(Number(season) !== nextDraftSeason()) return 'mid';
+  const order = [...S.rosters].sort((a,b) => ((a.settings?.wins||0)-(b.settings?.wins||0)) || ((a.settings?.fpts||0)-(b.settings?.fpts||0)));
+  const q = order.findIndex(r => r.roster_id === orig) / Math.max(1, order.length);
+  return q < 1/3 ? 'early' : q < 2/3 ? 'mid' : 'late';
+}
+function pickValue(k){
+  const slot = pickSlot(k.orig, k.season), field = dynFormat().sf ? 'sf' : '1qb';
+  const hit = TV.picks?.picks?.find(p => String(p.season)===String(k.season) && p.round===k.round && p.slot===slot);
+  if(hit) return hit[field] || 0;
+  const base = {1:3200,2:1300,3:550,4:250,5:120}[k.round] || 80;
+  return Math.round(base * ({early:1.25, mid:1, late:.8}[slot]) * Math.pow(.92, k.season - nextDraftSeason()));
+}
+const ordinal = n => n + ({1:'st',2:'nd',3:'rd'}[n] || 'th');
+const pickLabel = k => { const sl = pickSlot(k.orig, k.season); return `${k.season} ${sl==='mid'?'':sl[0].toUpperCase()+sl.slice(1)+' '}${ordinal(k.round)}`.replace('  ',' '); };
+
+const T = { lg:null, partner:null, give:[], get:[], mode:null };
+const itemKey = it => it.type==='p' ? 'p'+it.id : `k${it.season}-${it.round}-${it.orig}`;
+function assetValue(it, mode){
+  if(it.type === 'k') return mode === 'dyn' ? pickValue(it) : 0;
+  return mode === 'dyn' ? dynValue(it.id) : redValue(it.id);
+}
+const fmtVal = (v, mode) => mode === 'dyn' ? Math.round(v).toLocaleString() : fmt(v, 0);
+
+async function viewTrade(){
+  const v = $('#view');
+  v.innerHTML = `<div class="loader"><div class="spin"></div>Loading trade values…</div>`;
+  await loadTradeData();
+  if(isDynasty() && !tradedPicks){ try{ tradedPicks = await getJSON(`${API}/league/${S.league.league_id}/traded_picks`) || []; }catch(e){ tradedPicks = []; } }
+  if(S.tab !== 'trade') return;
+  if(T.lg !== S.league.league_id){ Object.assign(T, { lg:S.league.league_id, partner:null, give:[], get:[], mode: isDynasty() ? 'dyn' : 'red' }); replCache = null; }
+  const others = S.rosters.filter(r => r.roster_id !== S.myRoster.roster_id);
+  if(!T.partner || !others.some(r => r.roster_id === T.partner)) T.partner = others[0]?.roster_id;
+  drawTrade();
+}
+function drawTrade(){
+  const v = $('#view'); const mode = T.mode; const dyn = isDynasty();
+  const partner = rosterById(T.partner); const others = S.rosters.filter(r => r.roster_id !== S.myRoster.roster_id);
+  const f = dynFormat();
+  const src = mode === 'dyn'
+    ? (dynTable() ? `Market values for ${f.sf?'superflex':'1QB'}, ${f.scoring==='ppr_tep'?'PPR + TE premium':f.scoring==='ppr'?'PPR':'half-PPR'}. <a href="${esc(TV.dyn.attribution_url||'https://rosteraudit.com')}" target="_blank" rel="noopener">${esc(TV.dyn.attribution||'Values by RosterAudit.com')}</a>${TV.dyn.asOf?` · updated ${fmtDate(TV.dyn.asOf)}`:''}.`
+                  : `Market values aren't available yet, so these use a built-in estimate from Sleeper rankings and age curves. They'll switch over automatically once the daily refresh runs.`)
+    : `Rest-of-season projected points above a replacement-level starter${TV.red?`, from Sleeper projections (updated ${fmtDate(TV.red.asOf)})`:', estimated from this week\'s projections'}.`;
+  const side = (key, label, owner) => {
+    const items = T[key];
+    return `<div class="card" style="margin:0"><div class="spread"><h3 style="margin:0">${label}</h3><button class="btn ghost sm" data-add="${key}">+ Add</button></div>
+      <div class="muted small" style="margin-bottom:4px">${esc(teamName(owner))}</div>
+      <div class="list">${items.map(it => `<div class="item">${it.type==='p'?`<span class="pos">${esc(P(it.id).p)}</span><div class="grow" style="min-width:0"><div class="pname">${esc(P(it.id).n)}</div><div class="muted small">${esc(P(it.id).t||'FA')}${P(it.id).a?` · age ${P(it.id).a}`:''}</div></div>`
+          : `<span class="pos">PICK</span><div class="grow"><div class="pname">${esc(pickLabel(it))}</div><div class="muted small">${it.orig===owner.roster_id?'Own pick':'via '+esc(teamName(rosterById(it.orig)))}</div></div>`}
+          <div class="pname" style="font-variant-numeric:tabular-nums">${fmtVal(assetValue(it, mode), mode)}</div>
+          <button class="btn ghost sm" data-rm="${key}:${itemKey(it)}" aria-label="Remove">✕</button></div>`).join('') || '<p class="muted small">Nothing added yet.</p>'}</div></div>`;
+  };
+  v.innerHTML = `
+    <div class="card"><h2>Trade evaluator</h2>
+      <label class="f" for="trPartner">Trade partner</label>
+      <select id="trPartner">${others.map(r => `<option value="${r.roster_id}" ${r.roster_id===T.partner?'selected':''}>${esc(teamName(r))} (${esc(ownerName(r))})</option>`).join('')}</select>
+      ${dyn ? `<label class="f">Value it as</label><div class="chips" id="trMode">
+        <button class="chip ${mode==='dyn'?'on':''}" data-m="dyn">Long-term (dynasty)</button>
+        <button class="chip ${mode==='red'?'on':''}" data-m="red">This season only</button></div>` : ''}
+      <p class="muted small" style="margin:10px 0 0">${src}</p>
+    </div>
+    <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">${side('give','You give', S.myRoster)}${side('get','You get', partner)}</div>
+    <div id="trResult"></div>`;
+  $('#trPartner').onchange = e => { T.partner = Number(e.target.value); T.get = []; drawTrade(); };
+  if(dyn) $('#trMode').querySelectorAll('.chip').forEach(c => c.onclick = () => { T.mode = c.dataset.m; drawTrade(); });
+  v.querySelectorAll('[data-add]').forEach(b => b.onclick = () => openAssetPicker(b.dataset.add));
+  v.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const [k, id] = b.dataset.rm.split(':'); T[k] = T[k].filter(it => itemKey(it) !== id); drawTrade(); });
+  drawTradeResult();
+}
+function openAssetPicker(key){
+  const owner = key === 'give' ? S.myRoster : rosterById(T.partner); const mode = T.mode;
+  const inTrade = new Set(T[key].map(itemKey));
+  const players = (owner.players||[]).map(id => ({type:'p', id})).filter(it => !inTrade.has(itemKey(it)))
+    .map(it => ({it, val: assetValue(it, mode)})).sort((a,b) => b.val - a.val);
+  const picks = isDynasty() ? ownedPicks(owner.roster_id).filter(it => !inTrade.has(itemKey(it))).map(it => ({it, val: assetValue(it, mode)})) : [];
+  $('#sheet').innerHTML = `<div class="spread"><h2>${key==='give'?'You give':'You get'}</h2><button class="btn ghost sm" id="apClose">Done</button></div>
+    <input type="text" id="apQ" placeholder="Search ${esc(teamName(owner))}'s roster" autocomplete="off" style="margin:8px 0">
+    <div class="list" id="apList"></div>`;
+  const draw = () => {
+    const q = $('#apQ').value.toLowerCase().trim();
+    const rows = [...players.filter(x => !q || P(x.it.id).n.toLowerCase().includes(q)), ...picks.filter(x => !q || pickLabel(x.it).toLowerCase().includes(q) || 'pick'.includes(q))];
+    $('#apList').innerHTML = rows.map((x,i) => `<div class="item" data-i="${i}" style="cursor:pointer">${x.it.type==='p'
+        ? `<span class="pos">${esc(P(x.it.id).p)}</span><div class="grow"><div class="pname">${esc(P(x.it.id).n)}${P(x.it.id).i?`<span class="inj">${esc(P(x.it.id).i)}</span>`:''}</div><div class="muted small">${esc(P(x.it.id).t||'FA')}${P(x.it.id).a?` · age ${P(x.it.id).a}`:''}</div></div>`
+        : `<span class="pos">PICK</span><div class="grow"><div class="pname">${esc(pickLabel(x.it))}</div><div class="muted small">${x.it.orig===owner.roster_id?'Own pick':'via '+esc(teamName(rosterById(x.it.orig)))}</div></div>`}
+      <div class="pname">${fmtVal(x.val, mode)}</div><span class="tag">Add</span></div>`).join('') || '<p class="muted">No matches.</p>';
+    $('#apList').querySelectorAll('.item').forEach(el => el.onclick = () => {
+      const x = rows[Number(el.dataset.i)]; T[key].push(x.it);
+      el.style.opacity = .35; el.onclick = null; el.querySelector('.tag').textContent = 'Added';
+    });
+  };
+  $('#apQ').oninput = draw; draw();
+  $('#apClose').onclick = () => { closeModal(); drawTrade(); };
+  $('#modal').classList.remove('hidden');
+}
+function lineupPoints(ids){ return optimalLineup(ids, rosPerWeek).reduce((a,p) => a + (p ? rosPerWeek(p) : 0), 0); }
+function drawTradeResult(){
+  const out = $('#trResult'); const mode = T.mode;
+  if(!T.give.length || !T.get.length){ out.innerHTML = `<div class="note">Add at least one asset to each side to see the evaluation.</div>`; return; }
+  const G = T.give.reduce((a,it) => a + assetValue(it, mode), 0), R = T.get.reduce((a,it) => a + assetValue(it, mode), 0);
+  const pct = (R - G) / Math.max(1, Math.max(G, R));
+  const verdict = Math.abs(pct) < .05 ? ['Fair trade', 'var(--text-primary)'] : pct >= .15 ? ['Clear win for you', 'var(--good)'] : pct > 0 ? ['Slight win for you', 'var(--good)']
+                : pct <= -.15 ? ["You're overpaying", 'var(--bad)'] : ['Slight overpay', 'var(--warn)'];
+  // lineup impact
+  const partner = rosterById(T.partner);
+  const gIds = T.give.filter(i=>i.type==='p').map(i=>i.id), rIds = T.get.filter(i=>i.type==='p').map(i=>i.id);
+  const mine = activePlayers(S.myRoster), theirs = activePlayers(partner);
+  const myB = lineupPoints(mine), myA = lineupPoints([...mine.filter(p => !gIds.includes(p)), ...rIds]);
+  const thB = lineupPoints(theirs), thA = lineupPoints([...theirs.filter(p => !rIds.includes(p)), ...gIds]);
+  const dlt = (a,b) => { const d = a - b; return `<span style="color:${d>0.05?'var(--good)':d<-0.05?'var(--bad)':'var(--text-secondary)'}">${d>0?'+':''}${fmt(d)}</span>`; };
+  // balancing suggestion
+  const D = Math.abs(R - G); let sugg = '';
+  if(Math.abs(pct) >= .05){
+    const fromRoster = pct < 0 ? partner : S.myRoster;            // who should add
+    const used = new Set([...T.give, ...T.get].map(itemKey));
+    const pool = [...(fromRoster.players||[]).map(id => ({type:'p', id})), ...(isDynasty() && mode==='dyn' ? ownedPicks(fromRoster.roster_id) : [])]
+      .filter(it => !used.has(itemKey(it))).map(it => ({it, val: assetValue(it, mode)})).filter(x => x.val >= D*.5 && x.val <= D*1.4)
+      .sort((a,b) => Math.abs(a.val-D) - Math.abs(b.val-D)).slice(0, 3);
+    if(pool.length) sugg = `<h3 style="margin-top:14px">${pct < 0 ? 'To even it out, ask them to add one of:' : 'To make it fairer for them, you could add one of:'}</h3>
+      <div class="list">${pool.map(x => `<div class="item"><span class="pos">${x.it.type==='p'?esc(P(x.it.id).p):'PICK'}</span><span class="grow pname">${x.it.type==='p'?esc(P(x.it.id).n):esc(pickLabel(x.it))}</span><span class="muted">${fmtVal(x.val, mode)}</span></div>`).join('')}</div>`;
+  }
+  const ages = ids => { const a = ids.map(id => P(id).a).filter(Boolean); return a.length ? a.reduce((x,y)=>x+y,0)/a.length : null; };
+  const ag = ages(gIds), ar = ages(rIds);
+  const spots = T.get.filter(i=>i.type==='p').length - T.give.filter(i=>i.type==='p').length;
+  const share = R / Math.max(1, G + R) * 100;
+  out.innerHTML = `<div class="card">
+      <div class="spread"><h2 style="margin:0;color:${verdict[1]}">${verdict[0]}</h2><span class="tag">${pct>=0?'+':''}${(pct*100).toFixed(0)}%</span></div>
+      <div class="grid2" style="margin-top:10px">
+        <div class="stat"><div class="k">You give</div><div class="v">${fmtVal(G, mode)}</div></div>
+        <div class="stat"><div class="k">You get</div><div class="v">${fmtVal(R, mode)}</div></div>
+      </div>
+      <div class="bar" style="margin-top:10px" role="img" aria-label="You receive ${share.toFixed(0)} percent of the total value"><span style="width:${share.toFixed(1)}%"></span></div>
+      <div class="spread small muted" style="margin-top:4px"><span>Your share ${share.toFixed(0)}%</span><span>${mode==='dyn'?'Dynasty market value':'Rest-of-season points above replacement'}</span></div>
+      ${sugg}
+    </div>
+    <div class="card"><h3>Starting lineup impact</h3>
+      <p class="muted small" style="margin-top:0">Best projected lineup, average points per week for the rest of the season.</p>
+      <table><thead><tr><th></th><th class="n">Before</th><th class="n">After</th><th class="n">Change</th></tr></thead><tbody>
+        <tr><td class="pname">You</td><td class="n">${fmt(myB)}</td><td class="n">${fmt(myA)}</td><td class="n">${dlt(myA, myB)}</td></tr>
+        <tr><td>${esc(teamName(partner))}</td><td class="n">${fmt(thB)}</td><td class="n">${fmt(thA)}</td><td class="n">${dlt(thA, thB)}</td></tr>
+      </tbody></table>
+      <p class="muted small">${spots > 0 ? `You'll need to open ${spots} roster spot${spots===1?'':'s'} to make this trade.` : spots < 0 ? `This frees up ${-spots} roster spot${spots===-1?'':'s'} for a waiver pickup.` : 'Roster counts stay the same.'}
+      ${isDynasty() && ag && ar ? ` Average age: you give ${ag.toFixed(1)}, you get ${ar.toFixed(1)}.` : ''}</p>
+    </div>`;
 }
 
 /* =========================================================

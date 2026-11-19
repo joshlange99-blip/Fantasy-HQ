@@ -11,6 +11,7 @@ A personal fantasy football command center built on Sleeper's public API. Open t
 | Matchup | Live scores for both starting lineups plus a pre-game win probability |
 | Lineup | Best possible lineup using your league's scoring settings, with the exact swaps |
 | Simulate | Plays a matchup 10,000 times: win %, score ranges, and the players who swing it most |
+| Trade | Evaluates any trade with a leaguemate: dynasty market value (players + picks) or rest-of-season value, a fairness verdict, suggestions to balance it, and both teams' starting-lineup change |
 | Waivers | Every unowned player, sorted by projection, upgrade over your weakest starter, or trending adds (plus young stashes in dynasty) |
 | League history | Every season back to the league's start: champions, all-time standings, finish chart, points per season, records, your head-to-head |
 | Money | Shown only when the league has a buy-in: all-time net winnings, your running total, payouts by season |
@@ -20,6 +21,11 @@ A personal fantasy football command center built on Sleeper's public API. Open t
 
 - `index.html`: the whole app (HTML, CSS, JS). It calls `api.sleeper.app` straight from the browser.
 - `rookies.json`: rookie prospect data. The **weekly update job** refreshes it and adds a dated entry to `updates`.
+- `data/`: trade-value data refreshed **daily** by the GitHub Action `.github/workflows/update-values.yml` (script: `scripts/update-values.mjs`):
+  - `dynasty-values.json`: dynasty player values (superflex and 1QB; PPR, half-PPR and TE premium). Values by [RosterAudit.com](https://rosteraudit.com).
+  - `picks.json`: rookie pick values (early/mid/late) for upcoming drafts, also from RosterAudit.com.
+  - `redraft.json`: rest-of-season projected points per player, summed from Sleeper's weekly projections.
+  If a file is missing, the app falls back to a built-in estimate.
 - `config.json`: settings shared by every device:
   - `sleeperUser`: your Sleeper username, so the app opens straight to your leagues
   - `money`: buy-in settings per league, keyed by league name. Example:
@@ -54,6 +60,8 @@ Settings you change inside the app (money setup, rookie edits, model weights) ar
 - Newest entry first in `updates`. Keep the last ~12.
 
 ## Data sources
+
+- Dynasty trade values and pick values: [RosterAudit.com](https://rosteraudit.com) public API (attribution shown in the app).
 
 - Sleeper public API (league data, players, trending adds) and Sleeper's projections feed. The projections endpoint isn't officially documented and could change.
 - Rookie values are estimates drawn from public draft coverage and college stats. They're a starting point, not an authority.
