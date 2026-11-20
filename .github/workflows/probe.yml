@@ -1,0 +1,29 @@
+name: Probe data sources (temporary)
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/probe.yml"]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          O="Origin: https://joshlange99-blip.github.io"
+          probe () {
+            echo "=================== $1"
+            code=$(curl -s -o /tmp/b -w "%{http_code}" -H "$O" -D /tmp/h "$1")
+            echo "HTTP $code  size $(wc -c </tmp/b)"
+            grep -i "access-control-allow-origin" /tmp/h || echo "(no CORS header)"
+            head -c 700 /tmp/b; echo
+          }
+          probe "https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?playerId=3139477&limit=3"
+          probe "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477/overview"
+          probe "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477/gamelog"
+          probe "https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=3"
+          probe "https://api.sleeper.com/stats/nfl/player/4046?season_type=regular&season=2026&grouping=week"
+          probe "https://api.sleeper.com/projections/nfl/player/4046?season_type=regular&season=2026&grouping=week"
+          probe "https://api.sleeper.app/stats/nfl/2026/10?season_type=regular&position[]=QB"
+          probe "https://api.sleeper.app/projections/nfl/2026/12?season_type=regular&position[]=QB"
+          probe "https://api.sleeper.app/v1/players/nfl/trending/add?limit=1"
+          probe "https://site.web.api.espn.com/apis/search/v2?query=jeremiah%20smith&limit=5"
+          probe "https://site.web.api.espn.com/apis/common/v3/search?query=jeremiah%20smith&limit=5&type=player"
