@@ -8,22 +8,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          O="Origin: https://joshlange99-blip.github.io"
-          probe () {
-            echo "=================== $1"
-            code=$(curl -s -o /tmp/b -w "%{http_code}" -H "$O" -D /tmp/h "$1")
-            echo "HTTP $code  size $(wc -c </tmp/b)"
-            grep -i "access-control-allow-origin" /tmp/h || echo "(no CORS header)"
-            head -c 700 /tmp/b; echo
-          }
-          probe "https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?playerId=3139477&limit=3"
-          probe "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477/overview"
-          probe "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477/gamelog"
-          probe "https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=3"
-          probe "https://api.sleeper.com/stats/nfl/player/4046?season_type=regular&season=2026&grouping=week"
-          probe "https://api.sleeper.com/projections/nfl/player/4046?season_type=regular&season=2026&grouping=week"
-          probe "https://api.sleeper.app/stats/nfl/2026/10?season_type=regular&position[]=QB"
-          probe "https://api.sleeper.app/projections/nfl/2026/12?season_type=regular&position[]=QB"
-          probe "https://api.sleeper.app/v1/players/nfl/trending/add?limit=1"
-          probe "https://site.web.api.espn.com/apis/search/v2?query=jeremiah%20smith&limit=5"
-          probe "https://site.web.api.espn.com/apis/common/v3/search?query=jeremiah%20smith&limit=5&type=player"
+          j () { echo "=================== $1"; curl -s "$2" | jq -c "$3" | cut -c1-900; }
+          A=https://site.web.api.espn.com/apis/common/v3/sports/football
+          j "nfl overview keys" "$A/nfl/athletes/3139477/overview" 'keys'
+          j "nfl overview stats" "$A/nfl/athletes/3139477/overview" '.statistics | {displayName, labels, splits: [.splits[]? | {displayName, stats}]}'
+          j "nfl overview news" "$A/nfl/athletes/3139477/overview" '[.news[]? | {headline, description, published, href: .links.web.href}] | .[:2]'
+          j "nfl overview other" "$A/nfl/athletes/3139477/overview" '{nextGame: (.nextGame|keys?), fantasy: (.fantasy|tostring|.[0:300]), rotowire: (.rotowire|tostring|.[0:300])}'
+          j "fantasy news item" "https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?playerId=3139477&limit=3" '[.feed[] | {type, headline, description, story: (.story|tostring|.[0:200]), published, href: .links.web.href, images: (.images|length)}]'
+          j "college search" "https://site.web.api.espn.com/apis/common/v3/search?query=jeremiah%20smith&limit=10&type=player" '[.items[] | {id, displayName, league, teamName: .teamRelationships[0].displayName, pos: .position?, desc: .description?}]'
+          j "college overview keys" "$A/college-football/athletes/5079720/overview" 'keys'
+          j "college overview stats" "$A/college-football/athletes/5079720/overview" '.statistics | {displayName, labels, splits: [.splits[]? | {displayName, stats}]}'
+          j "college overview news" "$A/college-football/athletes/5079720/overview" '[.news[]? | {headline, description, published, href: .links.web.href}] | .[:2]'
+          j "college athlete" "https://site.web.api.espn.com/apis/common/v3/sports/football/college-football/athletes/5079720" '.athlete | {displayName, team: .team.displayName, position: .position.abbreviation, displayHeight, displayWeight, displayExperience, headshot: .headshot.href, age, dateOfBirth}'
+          j "nfl athlete" "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477" '.athlete | {displayName, team: .team.displayName, displayHeight, displayWeight, age, headshot: .headshot.href, college: .college.name, draft: .displayDraft, status: .status}'
+          j "sleeper stats wk keys" "https://api.sleeper.com/stats/nfl/player/4046?season_type=regular&season=2026&grouping=week" 'to_entries | map({w: .key, opp: .value.opponent, team: .value.team, pts: .value.stats.pts_ppr, rk: .value.stats.pos_rank_ppr}) | .[:4]'
+          j "sleeper stats season" "https://api.sleeper.com/stats/nfl/player/4046?season_type=regular&season=2025&grouping=season" '.|tostring|.[0:400]'
