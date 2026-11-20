@@ -141,6 +141,23 @@ details summary{cursor:pointer;color:var(--text-secondary);font-size:13px}
 .pb span{background:rgba(255,255,255,.82);border-radius:6px;padding:1px 4px}
 .pb.QB span,.pb.RB span,.pb.WR span,.pb.TE span,.pb.K span,.pb.DEF span,.pb.BN span{background:none;padding:0}
 .bench-toggle{width:100%;margin-top:12px}
+/* ---- playoffs ---- */
+.po-bar{height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden;min-width:60px}
+.po-bar>span{display:block;height:100%;background:#3987e5;border-radius:999px}
+.po-cut td{border-bottom:2px dashed var(--text-muted)}
+.bracket{display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.br-col{display:flex;flex-direction:column;justify-content:space-around;gap:12px;min-width:150px;flex:1}
+.br-col h4{margin:0 0 2px;font-size:11.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;text-align:center}
+.br-m{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.br-t{display:flex;align-items:center;gap:6px;padding:7px 9px;font-size:13px}
+.br-t+.br-t{border-top:1px solid var(--line)}
+.br-t .sd{width:18px;color:var(--text-muted);font-weight:700;font-variant-numeric:tabular-nums}
+.br-t .tn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.br-t .sc{font-variant-numeric:tabular-nums;font-weight:700}
+.br-t.win .tn{font-weight:800} .br-t.lose{opacity:.55}
+.br-t.me .tn{color:var(--series-1)}
+.br-t.tbd .tn{color:var(--text-muted);font-style:italic}
+.seedheat td{text-align:center;font-size:12px;font-variant-numeric:tabular-nums;padding:6px 3px;border:2px solid var(--surface-1)}
 .plink{cursor:pointer;text-decoration:underline;text-decoration-color:rgba(240,239,236,.18);text-underline-offset:3px}
 .plink:hover{text-decoration-color:currentColor}
 .modal .sheet.tall{max-height:94vh;min-height:70vh}
@@ -426,7 +443,7 @@ function familyKey(){ return S.history?.rootId || store.get('root:'+S.league.lea
 
 function buildTabs(){
   const cfg = moneyCfg();
-  const tabs = [['matchup','Matchup'],['lineup','Lineup'],['sim','Simulate'],['waivers','Waivers'],['trade','Trade'],['history','League history']];
+  const tabs = [['matchup','Matchup'],['lineup','Lineup'],['sim','Simulate'],['waivers','Waivers'],['trade','Trade'],['playoffs','Playoffs'],['history','League history']];
   if(cfg && cfg.enabled) tabs.push(['money','Money']);
   if(isDynasty()) tabs.push(['rookies','Rookie board']);
   if(!tabs.find(t => t[0] === S.tab)) S.tab = 'matchup';
@@ -441,7 +458,7 @@ function render(){
     v.innerHTML = `<div class="note">You don't own a team in this league, so matchup and lineup tools are off. History and waivers still work.</div>`;
     return;
   }
-  ({matchup:viewMatchup, lineup:viewLineup, sim:viewSim, waivers:viewWaivers, trade:viewTrade, history:viewHistory, money:viewMoney, rookies:viewRookies})[S.tab]();
+  ({matchup:viewMatchup, lineup:viewLineup, sim:viewSim, waivers:viewWaivers, trade:viewTrade, playoffs:viewPlayoffs, history:viewHistory, money:viewMoney, rookies:viewRookies})[S.tab]();
 }
 
 /* =========================================================
@@ -1213,6 +1230,229 @@ function drawTradeResult(){
     </div>`;
 }
 
+
+
+/* =========================================================
+   PLAYOFFS
+   Before the playoffs: Monte Carlo of the remaining regular season (10,000 runs) using the real
+   schedule from Sleeper. Each team's weekly score = blend of its projected best lineup that week
+   and its actual scoring average, with a team-specific spread. The live week locks in finished games.
+   Seeding: record, then points for (division winners first when the league has divisions).
+   During/after the playoffs: Sleeper's winners bracket with scores.
+   ========================================================= */
+const nextPow2 = n => { let p = 1; while(p < n) p *= 2; return p; };
+function seedOrder(P){ let o = [1,2]; while(o.length < P){ const n = o.length*2; o = o.flatMap(x => [x, n+1-x]); } return o; }
+const pfOf = r => (r.settings?.fpts||0) + (r.settings?.fpts_decimal||0)/100;
+function seedTeams(recs){
+  // recs: [{rid, w, pf, div}] -> ordered array of rids by seed
+  const cmp = (a,b) => (b.w - a.w) || (b.pf - a.pf);
+  const divs = S.league.settings?.divisions || 0;
+  if(divs > 1){
+    const winners = []; const byDiv = {};
+    recs.forEach(r => (byDiv[r.div||0] ||= []).push(r));
+    Object.values(byDiv).forEach(list => winners.push([...list].sort(cmp)[0]));
+    const wset = new Set(winners.map(x => x.rid));
+    return [...winners.sort(cmp), ...recs.filter(r => !wset.has(r.rid)).sort(cmp)].map(r => r.rid);
+  }
+  return [...recs].sort(cmp).map(r => r.rid);
+}
+function currentRecs(){
+  return S.rosters.map(r => ({ rid:r.roster_id, w:(r.settings?.wins||0) + (r.settings?.ties||0)/2, l:r.settings?.losses||0, t:r.settings?.ties||0, wins:r.settings?.wins||0, pf:pfOf(r), div:r.settings?.division||0 }));
+}
+let PO_CACHE = null;
+async function runPlayoffSim(progress){
+  const lg = S.league, st = lg.settings || {};
+  const nPO = st.playoff_teams || 6, poStart = st.playoff_week_start || 15, median = !!st.league_average_match;
+  const startWeek = st.start_week || 1;
+  const gp = Math.max(...S.rosters.map(r => (r.settings?.wins||0)+(r.settings?.losses||0)+(r.settings?.ties||0)));
+  const weeksPlayed = startWeek - 1 + (median ? Math.round(gp/2) : gp);
+  const liveWeek = weeksPlayed + 1;
+  const remaining = []; for(let w = liveWeek; w < poStart; w++) remaining.push(w);
+  progress && progress('Loading schedule…');
+  const pastWeeks = []; for(let w = startWeek; w <= weeksPlayed; w++) pastWeeks.push(w);
+  const [pastM, futM] = await Promise.all([pool(pastWeeks, 6, w => weekMatchups(w)), pool(remaining, 4, w => weekMatchups(w))]);
+  progress && progress('Loading projections…');
+  const projMaps = await pool(remaining, 3, w => fetchProjections(lg.season, w));
+  await loadSchedule();
+  // team strength
+  const teams = {}; const allScores = [];
+  S.rosters.forEach(r => { const scores = []; pastM.forEach(m => { const x = (m||[]).find(y => y.roster_id === r.roster_id); if(x && x.points) scores.push(x.points); });
+    teams[r.roster_id] = { r, scores, ppg: scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : null }; allScores.push(...scores); });
+  const lgMean = allScores.length ? allScores.reduce((a,b)=>a+b,0)/allScores.length : 110;
+  const lgSD = allScores.length > 4 ? Math.sqrt(allScores.reduce((a,b)=>a+(b-lgMean)**2,0)/(allScores.length-1)) : 22;
+  Object.values(teams).forEach(t => {
+    const n = t.scores.length; const m = t.ppg ?? lgMean;
+    const v = n > 1 ? t.scores.reduce((a,b)=>a+(b-m)**2,0)/(n-1) : lgSD**2;
+    t.sd = Math.sqrt((n*v + 6*lgSD**2)/(n+6));
+    t.ppgReg = n ? (n*m + 3*lgMean)/(n+3) : lgMean;     // shrink early-season averages toward the league
+  });
+  // per-week means
+  const weekMeans = remaining.map((w, i) => {
+    const map = projMaps[i] || {}; const hasProj = Object.keys(map).length > 0; const out = {};
+    Object.values(teams).forEach(t => {
+      const roster = t.r;
+      if(w === liveWeek && futM[i]){
+        const m = futM[i].find(y => y.roster_id === roster.roster_id);
+        if(m && m.starters?.length && hasProj){ const E = liveEntries(m.starters, m.players_points, w, map, false);
+          const mu = E.reduce((a,x)=>a+x.mu,0), sd = Math.sqrt(E.reduce((a,x)=>a+x.sd*x.sd,0));
+          const anyLocked = E.some(x => x.lock) || Object.values(m.players_points||{}).some(v => v);
+          if(anyLocked){ out[roster.roster_id] = { mu, sd: Math.max(sd, 1) }; return; } }
+      }
+      const proj = hasProj ? optimalLineup(activePlayers(roster), pid => projPts(pid, null, map)).reduce((a,p) => a + (p ? projPts(p, null, map) : 0), 0) : 0;
+      const mu = proj > 0 ? .55*proj + .45*t.ppgReg : t.ppgReg;
+      out[roster.roster_id] = { mu, sd: t.sd, proj };
+    });
+    return out;
+  });
+  // schedule pairs
+  const games = remaining.map((w, i) => { const byM = {}; (futM[i]||[]).forEach(x => { if(x.matchup_id != null) (byM[x.matchup_id] ||= []).push(x.roster_id); }); return Object.values(byM).filter(p => p.length === 2); });
+  // simulate
+  progress && progress('Simulating the season 10,000 times…');
+  await new Promise(r => setTimeout(r, 30));
+  const N = 10000, rids = S.rosters.map(r => r.roster_id), base = currentRecs();
+  const nT = rids.length, idx = {}; rids.forEach((r,i) => idx[r] = i);
+  const make = new Float64Array(nT), bye = new Float64Array(nT), top = new Float64Array(nT), winsSum = new Float64Array(nT);
+  const seedCount = rids.map(() => new Float64Array(nT));
+  const gameWin = games.map(g => g.map(() => 0));
+  const myI = S.myRoster ? idx[S.myRoster.roster_id] : -1;
+  let nextW = 0, nextWmake = 0, nextL = 0, nextLmake = 0, outN = 0, outMake = 0;
+  const nByes = nextPow2(nPO) - nPO;
+  const w = new Float64Array(nT), pf = new Float64Array(nT), sc = new Float64Array(nT);
+  for(let s = 0; s < N; s++){
+    base.forEach((b,i) => { w[i] = b.w; pf[i] = b.pf; });
+    let myFirst = null, myAll = true;
+    for(let k = 0; k < remaining.length; k++){
+      const M = weekMeans[k];
+      for(let i = 0; i < nT; i++){ const m = M[rids[i]]; sc[i] = m ? m.mu + m.sd*gauss() : 0; pf[i] += sc[i]; }
+      games[k].forEach(([a,b], gi) => { const ia = idx[a], ib = idx[b];
+        if(sc[ia] > sc[ib]){ w[ia] += 1; gameWin[k][gi]++; } else if(sc[ib] > sc[ia]) w[ib] += 1; else { w[ia] += .5; w[ib] += .5; gameWin[k][gi] += .5; }
+        if(ia === myI || ib === myI){ const won = ia === myI ? sc[ia] > sc[ib] : sc[ib] > sc[ia]; if(k === 0) myFirst = won; if(!won) myAll = false; } });
+      if(median){ const sorted = Array.from(sc).sort((x,y)=>x-y); const med = (sorted[Math.floor((nT-1)/2)] + sorted[Math.ceil((nT-1)/2)])/2; for(let i = 0; i < nT; i++) if(sc[i] > med) w[i] += 1; }
+    }
+    const order = seedTeams(rids.map((rid,i) => ({ rid, w:w[i], pf:pf[i], div:base[i].div })));
+    order.forEach((rid, seed) => { const i = idx[rid]; seedCount[i][seed]++; if(seed < nPO) make[i]++; if(seed < nByes) bye[i]++; if(seed === 0) top[i]++; });
+    for(let i = 0; i < nT; i++) winsSum[i] += w[i];
+    if(myI >= 0){ const made = order.indexOf(rids[myI]) < nPO;
+      if(myFirst === true){ nextW++; if(made) nextWmake++; } else if(myFirst === false){ nextL++; if(made) nextLmake++; }
+      if(remaining.length && myAll){ outN++; if(made) outMake++; } }
+  }
+  const res = rids.map((rid, i) => ({ rid, make: make[i]/N, bye: bye[i]/N, top: top[i]/N, wins: winsSum[i]/N, seeds: Array.from(seedCount[i]).map(x => x/N),
+    sched: remaining.map((wk, k) => { const gi = games[k].findIndex(g => g.includes(rid)); if(gi < 0) return null; const g = games[k][gi]; const opp = g[0] === rid ? g[1] : g[0];
+      const pW = g[0] === rid ? gameWin[k][gi]/N : 1 - gameWin[k][gi]/N; return { week: wk, opp, pW, oppMu: weekMeans[k][opp]?.mu }; }).filter(Boolean),
+    mu: remaining.length ? remaining.reduce((a,_,k) => a + (weekMeans[k][rid]?.mu || 0), 0)/remaining.length : teams[rid].ppgReg }));
+  return { res, nPO, nByes, poStart, remaining, liveWeek, median, N,
+    me: myI >= 0 ? { nextW: nextW ? nextWmake/nextW : null, nextL: nextL ? nextLmake/nextL : null, out: outN ? outMake/outN : null, outOdds: outN/N } : null };
+}
+
+/* ---- bracket rendering ---- */
+function bracketHTML(rounds, titles){
+  const myRid = S.myRoster?.roster_id;
+  return `<div class="bracket">${rounds.map((ms, i) => `<div class="br-col">${titles[i] === '' ? '' : `<h4>${esc(titles[i] ?? 'Round ' + (i+1))}</h4>`}${ms.map(m => `<div class="br-m">${[m.a, m.b].map(t => {
+      if(!t) return `<div class="br-t tbd"><span class="sd"></span><span class="tn">—</span></div>`;
+      const cls = [t.win ? 'win' : t.lose ? 'lose' : '', t.rid === myRid ? 'me' : '', t.tbd ? 'tbd' : ''].join(' ');
+      return `<div class="br-t ${cls}"><span class="sd">${t.seed ?? ''}</span><span class="tn">${esc(t.name)}</span>${t.pts != null ? `<span class="sc">${fmt(t.pts, 1)}</span>` : ''}</div>`; }).join('')}</div>`).join('')}</div>`).join('')}</div>`;
+}
+function roundTitles(n){ return Array.from({length:n}, (_, i) => i === n-1 ? 'Championship' : i === n-2 ? 'Semifinals' : i === n-3 ? 'Quarterfinals' : `Round ${i+1}`); }
+function projectedBracket(seedRids, nPO){
+  const P = nextPow2(nPO); const order = seedOrder(P); const rounds = [];
+  const team = seed => seed <= nPO ? { seed, rid: seedRids[seed-1], name: teamName(rosterById(seedRids[seed-1])) } : null;
+  let cur = []; for(let i = 0; i < P; i += 2) cur.push({ a: team(order[i]), b: team(order[i+1]) });
+  // byes advance automatically
+  const r1 = cur.filter(m => m.a && m.b); const adv = cur.map(m => (m.a && m.b) ? { tbd:true, name:`Winner ${m.a.seed} v ${m.b.seed}` } : (m.a || m.b));
+  rounds.push(r1);
+  let prev = adv;
+  while(prev.length > 1){ const next = []; for(let i = 0; i < prev.length; i += 2) next.push({ a: prev[i], b: prev[i+1] }); rounds.push(next);
+    prev = next.map(m => ({ tbd:true, name: m.a?.tbd || m.b?.tbd ? 'Winner' : `Winner ${m.a.seed} v ${m.b.seed}` })); }
+  return rounds;
+}
+async function sleeperBracket(seedRids){
+  const br = await getJSON(`${API}/league/${S.league.league_id}/winners_bracket`).catch(() => []) || [];
+  if(!br.length || !br.some(m => typeof m.t1 === 'number' || typeof m.t2 === 'number')) return null;
+  const poStart = S.league.settings?.playoff_week_start || 15;
+  const maxR = Math.max(...br.map(m => m.r));
+  const weekPts = await pool(Array.from({length:maxR}, (_,i) => poStart + i), 3, w => weekMatchups(w).catch(() => []));
+  const seedOf = rid => seedRids.indexOf(rid) + 1 || null;
+  const byM = {}; br.forEach(m => byM[m.m] = m);
+  const label = f => { if(!f) return null; const src = byM[f.w ?? f.l]; const who = src ? [src.t1, src.t2].filter(x => typeof x === 'number').map(x => seedOf(x)).join(' v ') : ''; return { tbd:true, name: `${f.w != null ? 'Winner' : 'Loser'}${who ? ' ' + who : ''}` }; };
+  const side = (m, k) => { const rid = m[k]; if(typeof rid !== 'number') return label(m[k + '_from']);
+    const pts = (weekPts[m.r-1] || []).find(x => x.roster_id === rid)?.points; const done = m.w != null;
+    return { rid, seed: seedOf(rid), name: teamName(rosterById(rid)), pts: pts || pts === 0 ? (pts || null) : null, win: done && m.w === rid, lose: done && m.l === rid }; };
+  const main = Array.from({length:maxR}, (_, i) => br.filter(m => m.r === i+1 && (m.p == null || m.p === 1)).map(m => ({ a: side(m,'t1'), b: side(m,'t2') })));
+  const place = br.filter(m => m.p && m.p > 1).sort((a,b) => a.p - b.p).map(m => ({ p: m.p, a: side(m,'t1'), b: side(m,'t2') }));
+  const champ = br.find(m => m.p === 1 && m.w != null);
+  return { main, place, champ: champ ? champ.w : null };
+}
+
+async function viewPlayoffs(){
+  const v = $('#view'); const st = S.league.settings || {};
+  const nPO = st.playoff_teams || 6, poStart = st.playoff_week_start || 15;
+  v.innerHTML = `<div class="loader"><div class="spin"></div><span id="poP">Loading…</span></div>`;
+  const recs = currentRecs(); const seeds = seedTeams(recs);
+  const inPlayoffs = currentWeek() >= poStart || S.league.status === 'complete' || S.nflState?.season_type === 'post';
+  if(inPlayoffs){
+    const b = await sleeperBracket(seeds).catch(() => null);
+    if(S.tab !== 'playoffs') return;
+    if(b){
+      v.innerHTML = `<div class="card"><div class="spread"><h2>${S.league.status === 'complete' ? `${S.league.season} playoffs` : 'Playoff bracket'}</h2><span class="tag">${nPO} teams</span></div>
+          ${b.champ ? `<p style="margin:0 0 10px">🏆 <b>${esc(teamName(rosterById(b.champ)))}</b> won the championship.</p>` : ''}
+          ${bracketHTML(b.main, roundTitles(b.main.length))}
+          <p class="muted small" style="margin:8px 0 0">Seeds from the final regular-season standings. Scores update live from Sleeper. Swipe sideways to see every round.</p></div>
+        ${b.place.length ? `<div class="card"><h3>Placement games</h3>${b.place.map(m => `<div class="muted small" style="margin:8px 0 4px">${ordinal(m.p)}-place game</div>${bracketHTML([[m]], [''])}`).join('')}</div>` : ''}`;
+      return;
+    }
+  }
+  // ---- odds mode ----
+  if(!PO_CACHE || PO_CACHE.lg !== S.league.league_id || Date.now() - PO_CACHE.t > 10*60e3){
+    try{ PO_CACHE = { lg: S.league.league_id, t: Date.now(), d: await runPlayoffSim(t => { const el = $('#poP'); if(el) el.textContent = t; }) }; }
+    catch(e){ v.innerHTML = `<div class="err">Couldn't run the playoff odds: ${esc(e.message)}</div>`; return; }
+  }
+  if(S.tab !== 'playoffs') return;
+  const D = PO_CACHE.d; const myRid = S.myRoster?.roster_id;
+  const res = [...D.res].sort((a,b) => (b.make - a.make) || (b.wins - a.wins));
+  const pct = x => x >= .9995 ? '>99.9%' : x <= .0005 ? (x === 0 ? '0%' : '<0.1%') : (x*100 >= 10 ? (x*100).toFixed(0) : (x*100).toFixed(1)) + '%';
+  const me = D.res.find(r => r.rid === myRid);
+  const recStr = r => { const s = rosterById(r.rid).settings || {}; return `${s.wins||0}-${s.losses||0}${s.ties?'-'+s.ties:''}`; };
+  const cutRank = seeds.indexOf(myRid) + 1;
+  const ramp = ['#0d366b','#104281','#184f95','#1c5cab','#256abf','#2a78d6','#3987e5','#5598e7','#6da7ec','#86b6ef'];
+  const heat = x => x <= 0 ? 'transparent' : ramp[Math.min(ramp.length-1, Math.max(0, Math.round((1 - Math.min(1, x/0.5)) * (ramp.length-1))))];
+  const nT = D.res.length;
+  v.innerHTML = `
+    ${me ? `<div class="card">
+      <div class="spread"><h2 style="margin:0">Your playoff odds</h2><span class="tag">${D.remaining.length} game${D.remaining.length===1?'':'s'} left</span></div>
+      <div class="big" style="margin-top:8px">${pct(me.make)}</div>
+      <div class="muted small">Currently the ${ordinal(cutRank)} seed at ${recStr(me)} · ${nPO} of ${nT} teams make it${D.nByes ? `, top ${D.nByes} get a bye` : ''}</div>
+      ${D.remaining.length ? `<div class="grid2" style="margin-top:12px;grid-template-columns:repeat(3,1fr)">
+        <div class="stat"><div class="k">Win wk ${D.remaining[0]}</div><div class="v">${D.me.nextW != null ? pct(D.me.nextW) : '–'}</div></div>
+        <div class="stat"><div class="k">Lose wk ${D.remaining[0]}</div><div class="v">${D.me.nextL != null ? pct(D.me.nextL) : '–'}</div></div>
+        <div class="stat"><div class="k">Win out</div><div class="v">${D.me.out != null ? pct(D.me.out) : '–'}</div><div class="muted small">${pct(D.me.outOdds)} chance</div></div>
+      </div>` : ''}
+      ${D.nByes ? `<p class="small sec" style="margin:10px 0 0">Bye: ${pct(me.bye)} · #1 seed: ${pct(me.top)}</p>` : ''}
+    </div>` : ''}
+    <div class="card"><div class="spread"><h2 style="margin:0">Playoff odds</h2><span class="tag">10,000 simulations</span></div>
+      <div class="scroll" style="margin-top:8px"><table><thead><tr><th>Team</th><th class="n">Now</th><th class="n">Proj W</th><th>Playoffs</th>${D.nByes?'<th class="n">Bye</th>':''}<th class="n">#1</th></tr></thead><tbody>
+      ${res.map((r, i) => `<tr class="${i === nPO-1 ? 'po-cut' : ''}"><td class="${r.rid===myRid?'me pname':''}" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(teamName(rosterById(r.rid)))}</td>
+        <td class="n">${recStr(r)}</td><td class="n">${fmt(r.wins, 1)}</td>
+        <td><div class="row" style="gap:6px;flex-wrap:nowrap"><div class="po-bar grow"><span style="width:${(r.make*100).toFixed(1)}%"></span></div><b style="min-width:44px;text-align:right;font-variant-numeric:tabular-nums">${pct(r.make)}</b></div></td>
+        ${D.nByes ? `<td class="n">${pct(r.bye)}</td>` : ''}<td class="n">${pct(r.top)}</td></tr>`).join('')}
+      </tbody></table></div>
+      <p class="muted small" style="margin:8px 0 0">The dashed line marks the playoff cutoff. Proj W = average final wins${D.median ? ' (includes median wins)' : ''}.</p></div>
+    <div class="card"><h3>Remaining schedule</h3>
+      <p class="muted small" style="margin-top:0">Win chance for each remaining game. Tap a team to expand.</p>
+      ${res.map(r => { const avgOpp = r.sched.length ? r.sched.reduce((a,g) => a + (g.oppMu||0), 0)/r.sched.length : null;
+        return `<details ${r.rid===myRid?'open':''} style="border-bottom:1px solid var(--line);padding:8px 0"><summary><span class="${r.rid===myRid?'me pname':''}">${esc(teamName(rosterById(r.rid)))}</span> <span class="muted small">· proj ${fmt(r.mu,0)}/wk${avgOpp ? ` · opponents avg ${fmt(avgOpp,0)}` : ''}</span></summary>
+        <div class="list" style="margin-top:4px">${r.sched.map(g => `<div class="item"><span class="muted small" style="width:44px">Wk ${g.week}</span><span class="grow">vs ${esc(teamName(rosterById(g.opp)))}</span>
+          <span class="tag ${g.pW >= .55 ? 'good' : g.pW <= .45 ? 'bad' : ''}">${Math.round(g.pW*100)}%</span></div>`).join('') || '<p class="muted small">No regular-season games left.</p>'}</div></details>`; }).join('')}
+    </div>
+    <div class="card"><h3>Seed chances</h3>
+      <p class="muted small" style="margin-top:0">How often each team finished in each seed. Darker means more likely.</p>
+      <div class="scroll"><table class="seedheat"><thead><tr><th style="text-align:left">Team</th>${Array.from({length:nT}, (_,i) => `<th class="n" style="text-align:center">${i+1}</th>`).join('')}</tr></thead><tbody>
+      ${res.map(r => `<tr><td style="text-align:left;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis" class="${r.rid===myRid?'me':''}">${esc(teamName(rosterById(r.rid)))}</td>${r.seeds.map((x, i) => `<td style="background:${heat(x)};color:${x >= .2 ? '#fff' : 'var(--text-secondary)'};${i === nPO-1 ? 'border-right:2px dashed var(--text-muted)' : ''}" title="${(x*100).toFixed(1)}%">${x >= .005 ? Math.round(x*100) : ''}</td>`).join('')}</tr>`).join('')}
+      </tbody></table></div></div>
+    <div class="card"><h3>If the season ended today</h3>
+      ${bracketHTML(projectedBracket(seeds, nPO), roundTitles(projectedBracket(seeds, nPO).length))}
+      <p class="muted small" style="margin:8px 0 0">Seeded by record, then points scored${(st.divisions||0) > 1 ? ', with division winners seeded first' : ''}. Playoffs start in week ${poStart}. Swipe sideways to see every round.</p></div>
+    <p class="muted small">How it works: every remaining game is played out 10,000 times. Each team's weekly score blends its best projected lineup for that week (Sleeper projections, so bye weeks and injuries count) with what it has actually scored this season, plus that team's normal week-to-week swings. Finished games this week are locked in.</p>`;
+}
 
 /* =========================================================
    PLAYER PROFILES
