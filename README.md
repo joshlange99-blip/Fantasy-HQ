@@ -2,7 +2,7 @@
 
 A personal fantasy football command center built on Sleeper's public API. Open the site, it loads every Sleeper league you're in, and the dropdown switches between them.
 
-**Live app:** https://joshlange99-blip.github.io/fantasy-hq/
+**Live app:** https://joshlange99-blip.github.io/Fantasy-HQ/
 
 ## Features
 
