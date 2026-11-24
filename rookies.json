@@ -1,7 +1,11 @@
 {
- "asOf": "2026-11-19",
+ "asOf": "2026-11-24",
  "draftClass": 2027,
  "updates": [
+  {
+   "date": "2026-11-24",
+   "text": "Week 13 refresh. Risers: LaNorris Sellers (70 to 24), Luke Reynolds (105 to 55), Nick Marsh (55 to 22), Darian Mensah (28 to 12) and Jadan Baugh, now RB1. Fallers: Eric Singleton Jr., Cam Coleman, Kewan Lacy (season-ending shoulder injury) and KJ Duff (ankle surgery); Arch Manning and Austin Simmons may return to school. Added Jackson Harris, Amare Thomas, Isaac Brown, Wayshawn Parker, LJ Martin, Terrance Carter Jr. and Willie Rodriguez."
+  },
   {
    "date": "2026-11-19",
    "text": "Initial board: 37 prospects across QB, RB, WR and TE, with starting draft-range and production estimates."
@@ -13,22 +17,11 @@
    "name": "Jeremiah Smith",
    "pos": "WR",
    "school": "Ohio State",
-   "ht": "6-3",
-   "wt": 223,
-   "pick": 2,
-   "prod": 97,
-   "note": "Unanimous All-American in 2025; holds Buckeye career receiving records. Near-unanimous WR1."
-  },
-  {
-   "id": "ccoleman",
-   "name": "Cam Coleman",
-   "pos": "WR",
-   "school": "Texas",
-   "ht": "6-3",
-   "wt": 204,
-   "pick": 12,
-   "prod": 78,
-   "note": "Former five-star; transferred from Auburn. Widely viewed as WR2 in the class."
+   "ht": "6-4",
+   "wt": 222,
+   "pick": 1,
+   "prod": 98,
+   "note": "2026: 80 catches, 1,317 yards, 15 TD through 10 games. Top overall prospect on most boards."
   },
   {
    "id": "cbecker",
@@ -37,53 +30,9 @@
    "school": "Indiana",
    "ht": "6-4",
    "wt": 207,
-   "pick": 16,
-   "prod": 84,
-   "note": "Led the Big Ten at 20.0 yards per catch in 2025."
-  },
-  {
-   "id": "kjduff",
-   "name": "KJ Duff",
-   "pos": "WR",
-   "school": "Rutgers",
-   "ht": "6-6",
-   "wt": 225,
-   "pick": 30,
-   "prod": 80,
-   "note": "2025: 60 catches, 1,084 yards, 7 TD."
-  },
-  {
-   "id": "rcw",
-   "name": "Ryan Coleman-Williams",
-   "pos": "WR",
-   "school": "Alabama",
-   "ht": "6-0",
-   "wt": 184,
-   "pick": 42,
-   "prod": 72,
-   "note": "Formerly Ryan Williams. Explosive freshman year; young for the class."
-  },
-  {
-   "id": "mcraver",
-   "name": "Mario Craver",
-   "pos": "WR",
-   "school": "Texas A&M",
-   "ht": "5-9",
-   "wt": 165,
-   "pick": 52,
-   "prod": 79,
-   "note": "Smaller, dynamic slot/vertical threat."
-  },
-  {
-   "id": "esingleton",
-   "name": "Eric Singleton Jr.",
-   "pos": "WR",
-   "school": "Florida",
-   "ht": "5-10",
-   "wt": 180,
-   "pick": 60,
-   "prod": 70,
-   "note": "Early-round possibility despite inconsistent QB play."
+   "pick": 7,
+   "prod": 88,
+   "note": "2026: 53 catches, 950 yards, 10 TD (17.9 per catch). Now WR2 on several boards."
   },
   {
    "id": "nmarsh",
@@ -92,20 +41,31 @@
    "school": "Indiana",
    "ht": "6-3",
    "wt": 203,
-   "pick": 55,
-   "prod": 66,
-   "note": "2025: 59 catches, 662 yards. Strong at contested catches."
+   "pick": 22,
+   "prod": 75,
+   "note": "Michigan State transfer who has climbed into first-round range on several boards this fall."
   },
   {
-   "id": "rwingo",
-   "name": "Ryan Wingo",
+   "id": "ccoleman",
+   "name": "Cam Coleman",
    "pos": "WR",
    "school": "Texas",
+   "ht": "6-3",
+   "wt": 204,
+   "pick": 30,
+   "prod": 70,
+   "note": "Quiet first year at Texas: 24 catches, 425 yards, 7 TD in nine games. Has slipped toward the late first/second round."
+  },
+  {
+   "id": "jharris",
+   "name": "Jackson Harris",
+   "pos": "WR",
+   "school": "LSU",
    "ht": "6-2",
-   "wt": 214,
-   "pick": 58,
-   "prod": 66,
-   "note": "Former five-star; drops were an issue in 2025."
+   "wt": 202,
+   "pick": 32,
+   "prod": 72,
+   "note": "Started at Stanford and Hawaii before LSU; rose into first-round range this fall."
   },
   {
    "id": "rharris",
@@ -114,9 +74,20 @@
    "school": "Arizona State",
    "ht": "6-5",
    "wt": 217,
-   "pick": 62,
+   "pick": 35,
+   "prod": 80,
+   "note": "Boston College transfer and a steady riser; now projected late first to second round."
+  },
+  {
+   "id": "kjduff",
+   "name": "KJ Duff",
+   "pos": "WR",
+   "school": "Rutgers",
+   "ht": "6-6",
+   "wt": 225,
+   "pick": 40,
    "prod": 76,
-   "note": "800 yards, 8 TD through his first seven games of 2026."
+   "note": "Out for the rest of 2026 after high ankle surgery; expected back for pre-draft work in January."
   },
   {
    "id": "wyoung",
@@ -125,9 +96,31 @@
    "school": "Oklahoma State",
    "ht": "6-0",
    "wt": 195,
-   "pick": 85,
+   "pick": 55,
    "prod": 84,
-   "note": "2025 (North Texas): 1,264 yards, 10 TD."
+   "note": "North Texas transfer (2025: 1,264 yards, 10 TD); moving up into Round 2 projections."
+  },
+  {
+   "id": "rcw",
+   "name": "Ryan Coleman-Williams",
+   "pos": "WR",
+   "school": "Alabama",
+   "ht": "6-0",
+   "wt": 184,
+   "pick": 58,
+   "prod": 72,
+   "note": "Formerly Ryan Williams. Projected Day 2; staying healthy has been the question."
+  },
+  {
+   "id": "athomas",
+   "name": "Amare Thomas",
+   "pos": "WR",
+   "school": "Houston",
+   "ht": "",
+   "wt": null,
+   "pick": 70,
+   "prod": 74,
+   "note": "Projected Round 2-3."
   },
   {
    "id": "dalexander",
@@ -144,12 +137,56 @@
    "id": "jsherrill",
    "name": "Junior Sherrill",
    "pos": "WR",
-   "school": "",
-   "ht": "",
-   "wt": null,
-   "pick": 100,
+   "school": "Vanderbilt",
+   "ht": "5-11",
+   "wt": 200,
+   "pick": 82,
    "prod": 64,
-   "note": "Mid-round prospect with early-round upside."
+   "note": "Projected Day 2-3; gaining traction on recent boards."
+  },
+  {
+   "id": "mcraver",
+   "name": "Mario Craver",
+   "pos": "WR",
+   "school": "Texas A&M",
+   "ht": "5-9",
+   "wt": 165,
+   "pick": 85,
+   "prod": 79,
+   "note": "Smaller, dynamic slot/vertical threat; projections have drifted to Day 2-3."
+  },
+  {
+   "id": "rwingo",
+   "name": "Ryan Wingo",
+   "pos": "WR",
+   "school": "Texas",
+   "ht": "6-2",
+   "wt": 214,
+   "pick": 85,
+   "prod": 66,
+   "note": "Former five-star; ball security remains the knock and projections range from Round 2 to Day 3."
+  },
+  {
+   "id": "esingleton",
+   "name": "Eric Singleton Jr.",
+   "pos": "WR",
+   "school": "Florida",
+   "ht": "5-10",
+   "wt": 180,
+   "pick": 160,
+   "prod": 62,
+   "note": "Has fallen off most early-round projections during 2026."
+  },
+  {
+   "id": "jbaugh",
+   "name": "Jadan Baugh",
+   "pos": "RB",
+   "school": "Florida",
+   "ht": "6-1",
+   "wt": 228,
+   "pick": 26,
+   "prod": 88,
+   "note": "2026: 981 rushing yards, 16 TD through 11 games. Now RB1 on several boards."
   },
   {
    "id": "klacy",
@@ -158,9 +195,9 @@
    "school": "Ole Miss",
    "ht": "",
    "wt": null,
-   "pick": 32,
-   "prod": 86,
-   "note": "Several draft analysts rank him RB1. Speed back."
+   "pick": 50,
+   "prod": 80,
+   "note": "Dislocated shoulder Oct. 24 and expected to miss the rest of 2026 (388 yards, 5 TD in six games). Led FBS with 24 rushing TD in 2025."
   },
   {
    "id": "ahardy",
@@ -169,42 +206,75 @@
    "school": "Missouri",
    "ht": "5-10",
    "wt": 206,
-   "pick": 40,
-   "prod": 90,
-   "note": "Led the SEC in rushing in 2025 and the nation in 15+ yard runs."
+   "pick": 60,
+   "prod": 84,
+   "note": "Shot in the leg in May; returned Oct. 31. Ran for 1,649 yards and 16 TD in 2025. Some project a return to school."
   },
   {
-   "id": "jbaugh",
-   "name": "Jadan Baugh",
+   "id": "wparker",
+   "name": "Wayshawn Parker",
    "pos": "RB",
-   "school": "Florida",
-   "ht": "6-0",
-   "wt": 228,
-   "pick": 45,
-   "prod": 80,
-   "note": "1,170 rushing yards in 2025. Big, balanced runner."
+   "school": "Utah",
+   "ht": "5-10",
+   "wt": 205,
+   "pick": 85,
+   "prod": 74,
+   "note": "Washington State transfer; 6.6 yards per carry in 2025."
+  },
+  {
+   "id": "ljmartin",
+   "name": "LJ Martin",
+   "pos": "RB",
+   "school": "BYU",
+   "ht": "6-2",
+   "wt": 225,
+   "pick": 90,
+   "prod": 74,
+   "note": "Big back projected Day 2-3."
+  },
+  {
+   "id": "ibrown",
+   "name": "Isaac Brown",
+   "pos": "RB",
+   "school": "Louisville",
+   "ht": "5-9",
+   "wt": 190,
+   "pick": 95,
+   "prod": 82,
+   "note": "Averaged 8.8 yards per carry in 2025; explosive Day 2 candidate."
   },
   {
    "id": "nfrazier",
    "name": "Nate Frazier",
    "pos": "RB",
    "school": "Georgia",
-   "ht": "",
-   "wt": null,
-   "pick": 72,
+   "ht": "5-10",
+   "wt": 208,
+   "pick": 100,
    "prod": 70,
-   "note": "Power plus open-field speed."
+   "note": "Power plus open-field speed; durability is the main question. Day 2-3 projection."
   },
   {
    "id": "rbrown",
    "name": "Raleek Brown",
    "pos": "RB",
    "school": "Texas",
-   "ht": "",
-   "wt": null,
-   "pick": 95,
+   "ht": "5-9",
+   "wt": 195,
+   "pick": 110,
    "prod": 78,
-   "note": "1,141 rushing yards at Arizona State in 2025."
+   "note": "Receiver-first back; 1,141 rushing yards at Arizona State in 2025."
+  },
+  {
+   "id": "mfletcher",
+   "name": "Mark Fletcher Jr.",
+   "pos": "RB",
+   "school": "Miami",
+   "ht": "6-2",
+   "wt": 225,
+   "pick": 110,
+   "prod": 72,
+   "note": "Big back with 26 career rushing TD; projected Day 2-3."
   },
   {
    "id": "cdickey",
@@ -213,31 +283,20 @@
    "school": "Texas Tech",
    "ht": "",
    "wt": null,
-   "pick": 90,
+   "pick": 140,
    "prod": 74,
-   "note": ""
+   "note": "Not listed on most current position boards."
   },
   {
    "id": "hsmothers",
    "name": "Hollywood Smothers",
    "pos": "RB",
-   "school": "NC State",
-   "ht": "",
-   "wt": null,
-   "pick": 105,
+   "school": "Texas",
+   "ht": "5-11",
+   "wt": 195,
+   "pick": 150,
    "prod": 70,
-   "note": ""
-  },
-  {
-   "id": "mfletcher",
-   "name": "Mark Fletcher Jr.",
-   "pos": "RB",
-   "school": "Miami",
-   "ht": "",
-   "wt": null,
-   "pick": 100,
-   "prod": 72,
-   "note": ""
+   "note": "Transferred from NC State; projected Day 3."
   },
   {
    "id": "dmestemaker",
@@ -246,53 +305,20 @@
    "school": "Oklahoma State",
    "ht": "6-3",
    "wt": 215,
-   "pick": 6,
-   "prod": 88,
-   "note": "Rose from borderline first-rounder to QB1 on some big boards this fall."
+   "pick": 4,
+   "prod": 90,
+   "note": "2026: 3,533 yards, 30 TD, 11 INT through 11 games. QB1 or QB2 on most boards."
   },
   {
    "id": "cjcarr",
    "name": "CJ Carr",
    "pos": "QB",
    "school": "Notre Dame",
-   "ht": "6-2",
-   "wt": 200,
-   "pick": 14,
-   "prod": 80,
-   "note": ""
-  },
-  {
-   "id": "amanning",
-   "name": "Arch Manning",
-   "pos": "QB",
-   "school": "Texas",
-   "ht": "6-4",
-   "wt": 222,
-   "pick": 16,
-   "prod": 74,
-   "note": "Ideal build and athleticism; 2026 season has been uneven."
-  },
-  {
-   "id": "dmoore",
-   "name": "Dante Moore",
-   "pos": "QB",
-   "school": "Oregon",
    "ht": "6-3",
-   "wt": 206,
-   "pick": 20,
-   "prod": 82,
-   "note": "Returned to Oregon rather than enter the 2026 draft."
-  },
-  {
-   "id": "tchambliss",
-   "name": "Trinidad Chambliss",
-   "pos": "QB",
-   "school": "Ole Miss",
-   "ht": "6-0",
-   "wt": 208,
-   "pick": 26,
-   "prod": 84,
-   "note": ""
+   "wt": 210,
+   "pick": 5,
+   "prod": 86,
+   "note": "2026: 67.7%, 2,697 yards, 24 TD, 3 INT. Has pushed for QB1 in recent mocks."
   },
   {
    "id": "dmensah",
@@ -301,20 +327,53 @@
    "school": "Miami",
    "ht": "6-3",
    "wt": 205,
-   "pick": 28,
-   "prod": 84,
-   "note": ""
+   "pick": 12,
+   "prod": 92,
+   "note": "2026: 75.4%, 3,317 yards, 29 TD, 4 INT. Moved into the top-15 range on several boards."
   },
   {
-   "id": "asimmons",
-   "name": "Austin Simmons",
+   "id": "dmoore",
+   "name": "Dante Moore",
    "pos": "QB",
-   "school": "Missouri",
+   "school": "Oregon",
+   "ht": "6-3",
+   "wt": 206,
+   "pick": 18,
+   "prod": 74,
+   "note": "Concussion vs. USC ended his 2026 after four games; unclear whether he declares."
+  },
+  {
+   "id": "lsellers",
+   "name": "LaNorris Sellers",
+   "pos": "QB",
+   "school": "South Carolina",
+   "ht": "6-3",
+   "wt": 238,
+   "pick": 24,
+   "prod": 82,
+   "note": "2026: 2,187 passing yards, 17 TD, 8 INT plus 661 rushing yards and 7 TD. Big riser into Round 1."
+  },
+  {
+   "id": "tchambliss",
+   "name": "Trinidad Chambliss",
+   "pos": "QB",
+   "school": "Ole Miss",
+   "ht": "6-0",
+   "wt": 208,
+   "pick": 28,
+   "prod": 80,
+   "note": "Up-and-down 2026; will turn 25 in August 2027."
+  },
+  {
+   "id": "amanning",
+   "name": "Arch Manning",
+   "pos": "QB",
+   "school": "Texas",
    "ht": "6-4",
-   "wt": 220,
-   "pick": 45,
-   "prod": 72,
-   "note": ""
+   "wt": 222,
+   "pick": 30,
+   "prod": 75,
+   "note": "2026: 2,485 yards, 21 TD, 10 INT. Stock has dipped; a return to school or transfer is possible."
   },
   {
    "id": "jsayin",
@@ -328,37 +387,37 @@
    "note": "Very efficient starter throwing to Jeremiah Smith."
   },
   {
+   "id": "asimmons",
+   "name": "Austin Simmons",
+   "pos": "QB",
+   "school": "Missouri",
+   "ht": "6-4",
+   "wt": 220,
+   "pick": 70,
+   "prod": 72,
+   "note": "Lefty with top-QB tools, but widely expected to return to Missouri for 2027."
+  },
+  {
    "id": "jmaiava",
    "name": "Jayden Maiava",
    "pos": "QB",
    "school": "USC",
    "ht": "6-4",
    "wt": 230,
-   "pick": 60,
+   "pick": 110,
    "prod": 72,
-   "note": ""
-  },
-  {
-   "id": "lsellers",
-   "name": "LaNorris Sellers",
-   "pos": "QB",
-   "school": "South Carolina",
-   "ht": "6-3",
-   "wt": 240,
-   "pick": 70,
-   "prod": 68,
-   "note": "Rushing upside helps in fantasy."
+   "note": "Projected Day 3 in recent mocks."
   },
   {
    "id": "tgreen",
    "name": "Trey'Dez Green",
    "pos": "TE",
    "school": "LSU",
-   "ht": "",
-   "wt": null,
-   "pick": 45,
+   "ht": "6-7",
+   "wt": 240,
+   "pick": 28,
    "prod": 70,
-   "note": "Big target; some evaluators expect him to be TE1."
+   "note": "Big target with 12 contested catches in 2025; TE1 or TE2 on most boards."
   },
   {
    "id": "jjohnson",
@@ -367,7 +426,7 @@
    "school": "Oregon",
    "ht": "6-5",
    "wt": 257,
-   "pick": 50,
+   "pick": 32,
    "prod": 74,
    "note": "Most NFL-ready TE per many evaluators; tough after the catch."
   },
@@ -375,23 +434,56 @@
    "id": "lreynolds",
    "name": "Luke Reynolds",
    "pos": "TE",
-   "school": "",
-   "ht": "",
-   "wt": null,
-   "pick": 105,
-   "prod": 60,
-   "note": ""
+   "school": "Virginia Tech",
+   "ht": "6-4",
+   "wt": 250,
+   "pick": 55,
+   "prod": 66,
+   "note": "Penn State transfer and the fastest-rising TE this fall; now a Round 2 projection."
+  },
+  {
+   "id": "tcarter",
+   "name": "Terrance Carter Jr.",
+   "pos": "TE",
+   "school": "Texas Tech",
+   "ht": "6-2",
+   "wt": 245,
+   "pick": 95,
+   "prod": 70,
+   "note": "H-back transfer from Louisiana; 23 broken tackles after the catch in 2025."
+  },
+  {
+   "id": "wrodriguez",
+   "name": "Willie Rodriguez",
+   "pos": "TE",
+   "school": "Kentucky",
+   "ht": "6-4",
+   "wt": 249,
+   "pick": 110,
+   "prod": 64,
+   "note": "No drops on 29 career catchable targets; Day 2-3 projection."
+  },
+  {
+   "id": "bbrahmer",
+   "name": "Benjamin Brahmer",
+   "pos": "TE",
+   "school": "Penn State",
+   "ht": "6-6",
+   "wt": 253,
+   "pick": 145,
+   "prod": 62,
+   "note": "Iowa State transfer; projected Day 3."
   },
   {
    "id": "goakley",
    "name": "Garrett Oakley",
    "pos": "TE",
-   "school": "",
-   "ht": "",
-   "wt": null,
-   "pick": 110,
+   "school": "Kansas State",
+   "ht": "6-5",
+   "wt": 248,
+   "pick": 180,
    "prod": 64,
-   "note": "Size, athleticism and blocking."
+   "note": "Size, athleticism and blocking; projected Day 3."
   },
   {
    "id": "hhansen",
@@ -400,20 +492,9 @@
    "school": "Florida",
    "ht": "6-8",
    "wt": 267,
-   "pick": 115,
+   "pick": 200,
    "prod": 58,
-   "note": "Big in-line tight end."
-  },
-  {
-   "id": "bbrahmer",
-   "name": "Benjamin Brahmer",
-   "pos": "TE",
-   "school": "Penn State",
-   "ht": "",
-   "wt": null,
-   "pick": 120,
-   "prod": 62,
-   "note": ""
+   "note": "Big in-line tight end with heavy snap experience; unranked on most boards."
   }
  ]
 }
